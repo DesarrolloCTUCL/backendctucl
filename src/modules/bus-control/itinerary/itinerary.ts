@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { InteneraryService } from './intenerary.service';
+import { InteneraryService } from './itinerary.service';
 
 @Controller('intenerary')
 export class InteneraryController {

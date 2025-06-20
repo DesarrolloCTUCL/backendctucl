@@ -9,7 +9,7 @@ import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { DeviceModule } from './modules/device/device.module';
 import { BusLineModule } from './modules/bus-line/bus-line.module';
 import { BusStationLineModule } from './modules/bus-station-line/bus-station-line.module';
-import { InteneraryModule } from './modules/intenerary/intenerary.module';
+import { ItineraryModule } from './modules/itinerary/itinerary.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 
 
@@ -26,7 +26,7 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
     BusLineModule,
     DeviceModule,
     BusStationLineModule,
-    InteneraryModule,
+    ItineraryModule,
     ScheduleModule
   ],
   controllers: [],

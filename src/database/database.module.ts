@@ -10,7 +10,7 @@ import { BusLine } from './entities/bus-line.entity';
 import { BusLineStations } from './entities/bus-station-line.entity';
 import { BusStation } from './entities/bus-station.entity';
 import { Device } from './entities/device.entity';
-import { Intinerary } from './entities/intenerary.entity';
+import { Itinerary } from './entities/itinerary.entity';
 import { Schedule } from './entities/schedule.entity';
 import { Vehicle } from './entities/vehicle.entity';
 @Module({
@@ -33,7 +33,7 @@ import { Vehicle } from './entities/vehicle.entity';
           ChargingPoint,
           Company,
           Device,
-          Intinerary,
+          Itinerary,
           MqttCommandHistory,
           Schedule,
           User,
