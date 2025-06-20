@@ -15,7 +15,7 @@ import {
   IsDate,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ChargingPoint } from './charging-point.entity';
+import { Recharge_point } from './recharge-point.entity';
 
 export enum DeviceType {
   MOBILE_POS = 'MOBILE_POS',
@@ -66,7 +66,7 @@ export class Device {
   @ApiProperty({ description: 'Fecha de creación del registro', example: '2025-06-13T10:00:00Z' })
   created_at: Date;
 
-  @ManyToOne(() => ChargingPoint, (chargin_point) => chargin_point.devices)
+  @ManyToOne(() => Recharge_point, (chargin_point) => chargin_point.devices)
   @JoinColumn({ name: 'charging_point_id' })
-  charging_point: ChargingPoint;
+  charging_point: Recharge_point;
   }

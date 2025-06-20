@@ -7,11 +7,11 @@ import {
   IsOptional,
   IsNumber,
 } from 'class-validator';
-import { OperationStatus,Grupo } from 'src/database/entities/vehicle.entity';
+import { OperationStatus, Grupo, Company } from 'src/database/entities/vehicle.entity';
 
 export class CreateVehicleDto {
   @IsNumber()
-  @ApiProperty({ description: 'Número de registro del bus (ej: 1500 - 1738)', example: '1523' })
+  @ApiProperty({ description: 'Número de registro del bus (ej: 1500 - 1738)', example: 1523 })
   register: number;
 
   @IsString()
@@ -31,9 +31,9 @@ export class CreateVehicleDto {
   @ApiProperty({ description: 'Número de teléfono del socio', example: '+593987654321' })
   phone: string;
 
-  @IsNumber()
-  @ApiProperty({ description: 'ID de la compañía a la que pertenece el vehículo', example: 2 })
-  company_id: number;
+  @IsEnum(Company)
+  @ApiProperty({ description: 'Empresa a la que pertenece el vehículo', enum: Company })
+  company: Company;
 
   @IsString()
   @ApiProperty({ description: 'Placa del bus', example: 'ABC-1234' })

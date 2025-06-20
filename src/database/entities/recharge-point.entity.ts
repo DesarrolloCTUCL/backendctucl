@@ -19,8 +19,8 @@ import {
 } from 'class-validator';
 import { Device } from './device.entity';
 
-@Entity('charging_points')
-export class ChargingPoint {
+@Entity('recharge_point')
+export class Recharge_point {
   @PrimaryGeneratedColumn()
   @ApiProperty({ description: 'ID único del punto de carga' })
   id: number;
@@ -35,15 +35,12 @@ export class ChargingPoint {
   @ApiProperty({ description: 'Nombre del responsable', example: 'Carlos' })
   name: string;
 
-  @Column()
-  @IsString()
-  @ApiProperty({ description: 'Apellido del responsable', example: 'Gómez' })
-  lastname: string;
 
   @Column()
   @IsString()
-  @ApiProperty({ description: 'Cédula de identidad del responsable', example: '0102030405' })
-  dni: string;
+  @ApiProperty({ description: 'RUC del punto de carga', example: '0991234567001' })
+  ruc: string;
+
 
   @Column()
   @IsString()
@@ -61,36 +58,17 @@ export class ChargingPoint {
   @ApiProperty({ description: 'Dirección física del punto de carga', example: 'Av. Amazonas y Naciones Unidas' })
   address: string;
 
-  @Column()
+  @Column({ nullable: true })
+  @IsOptional()
   @IsString()
-  @ApiProperty({ description: 'Usuario del dispositivo asociado', example: 'device_001' })
-  device_username: string;
-
-  @Column()
-  @IsString()
-  @ApiProperty({ description: 'Contraseña del dispositivo asociado', example: 'securepass123' })
-  device_password: string;
-
-  @Column('float')
-  @IsNumber()
-  @ApiProperty({ description: 'Latitud geográfica', example: -0.22985 })
-  lat: number;
-
-  @Column('float')
-  @IsNumber()
-  @ApiProperty({ description: 'Longitud geográfica', example: -78.52495 })
-  long: number;
+  @ApiProperty({ description: 'Usuario del dispositivo asociado', example: 'device_001', required:false })
+  device_username?: string;
 
   @Column({ nullable: true })
   @IsOptional()
   @IsString()
-  @ApiProperty({ description: 'Descripción adicional', required: false, example: 'Punto en parqueadero subterráneo' })
-  description?: string;
-
-  @Column()
-  @IsString()
-  @ApiProperty({ description: 'RUC del punto de carga', example: '0991234567001' })
-  ruc: string;
+  @ApiProperty({ description: 'Contraseña del dispositivo asociado', example: 'securepass123', required:false })
+  device_password?: string;
 
   @Column({ nullable: true })
   @IsOptional()
@@ -103,6 +81,17 @@ export class ChargingPoint {
   @IsString()
   @ApiProperty({ description: 'Contrato asociado (futura relación)', example: 'contract-2025-001', required: false })
   contract?: string;
+
+  @Column('float')
+  @IsNumber()
+  @ApiProperty({ description: 'Latitud geográfica', example: -0.22985 })
+  lat: number;
+
+  @Column('float')
+  @IsNumber()
+  @ApiProperty({ description: 'Longitud geográfica', example: -78.52495 })
+  long: number;
+
 
   @Column({ default: true })
   @IsBoolean()

@@ -1,11 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColumn } from 'typeorm';
+import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
 @Entity('schedule')
 export class Schedule{
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  vehicle_id: string;
+  bus_id: string;
 
   @Column()
   date: string;
@@ -16,11 +19,12 @@ export class Schedule{
   @Column() // plantear relacion con entidad de bus line en un futuro
   line_id: string;
   
-  @Column()//plantear relacion con entidad de usuario en un futuro
-  user_id: string;
 
   @Column()
   driver: string;
+
+  @Column()//plantear relacion con entidad de usuario en un futuro
+  dispatcher: string;
 
   @Column()
   observations: string;

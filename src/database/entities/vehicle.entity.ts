@@ -1,7 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne,JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne,JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsPhoneNumber, IsNumber, IsIn, IsBoolean, IsOptional } from 'class-validator';
-import { Company } from './company.entity';
 import { User } from './user.entity';
 export enum OperationStatus {
     INACTIVE = 'inactivo',
@@ -14,17 +13,22 @@ export enum Grupo {
     GRUPO_2 = 'grupo_2',
 }
 
+export enum Company {
+    mayo24 = '24mayo',
+    cuxibamba = 'cuxibamba',
+    urbasur = 'urbasur',
+    urbaexpress = 'urbaexpress',
+}
+
 @Entity('vehicles')
 export class Vehicle {
-    @PrimaryGeneratedColumn()
-    @ApiProperty({ description: 'Identificador único del vehículo' })
-    id: number;
 
-    @Column()
+    @PrimaryColumn()
     @IsNumber()
     @ApiProperty({ description: 'Número de registro del bus (ej: 1500 - 1738)', example: 1523 })
     register: number;
 
+   
     @Column()
     @IsString()
     @ApiProperty({ description: 'Nombre del socio (dueño) del bus', example: 'Juan Pérez' })
@@ -39,25 +43,34 @@ export class Vehicle {
     required: false,
     })
     user?: User;
-
-    @Column()
+    
+    @Column({ nullable: true })
+    @IsOptional()
     @IsString()
-    @ApiProperty({ description: 'Cédula del socio', example: '0102030405' })
-    dni: string;
+    @ApiProperty({ description: 'Cédula del socio', example: '0102030405', required: false })
+    dni?: string;
 
-    @Column()
+    @Column({ nullable: true })
+    @IsOptional()
     @IsPhoneNumber('EC') // Cambia el código según el país
-    @ApiProperty({ description: 'Número de teléfono del socio', example: '+593987654321' })
-    phone: string;
+    @ApiProperty({ description: 'Número de teléfono del socio', example: '+593987654321', required: false })
+    phone?: string;
 
-    @ManyToOne(() => Company, (company) => company.vehicles)
-    @JoinColumn({ name: 'company_id' })
+ 
+    @Column({
+        type: 'enum',
+        enum: Company,
+    })
+    @IsEnum(Company)
+    @ApiProperty({ description: 'Empresa a la que pertenece el bus', enum: Company })
     company: Company;
 
-    @Column()
+
+    @Column({ nullable: true })
+    @IsOptional()
     @IsString()
-    @ApiProperty({ description: 'Placa del bus', example: 'ABC-1234' })
-    plate: string;
+    @ApiProperty({ description: 'Placa del bus', example: 'ABC-1234', required: false })
+    plate?: string;
 
     @Column({
         type: 'enum',

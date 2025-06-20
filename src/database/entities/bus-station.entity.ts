@@ -42,10 +42,6 @@ export class BusStation {
     @ApiProperty({ description: 'Longitud geográfica del punto', example: -79.922356})
     long: number;
 
-    @Column()
-    @IsString()
-    @ApiProperty({ description: 'Dirección física del punto', example: 'Av. Principal y Calle 5' })
-    address: string;
 
     @Column()
     @IsString()

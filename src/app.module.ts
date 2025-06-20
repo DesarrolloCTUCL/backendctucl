@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppConfigModule } from './config/config.module';
 import { UsersModule } from './modules/users/users.module';
-import { BusStationModule } from './modules/bus-station/bus_station.module';
+import { BusStationModule } from './modules/bus-control/bus-station/bus_station.module';
 import { MqttModule } from './modules/mqtt/mqtt.module';
 import { DatabaseModule } from './database/database.module';
 import { CompanyModule } from './modules/company/company.module';
@@ -9,8 +9,9 @@ import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { DeviceModule } from './modules/device/device.module';
 import { BusLineModule } from './modules/bus-line/bus-line.module';
 import { BusStationLineModule } from './modules/bus-station-line/bus-station-line.module';
-import { ItineraryModule } from './modules/itinerary/itinerary.module';
-import { ScheduleModule } from './modules/schedule/schedule.module';
+import { ItineraryModule } from './modules/bus-control/itinerary/itinerary.module';
+import { ScheduleModule } from './modules/bus-control/schedule/schedule.module';
+import { ShiftModule } from './modules/bus-control/shift/shift.module';
 
 
 
@@ -27,7 +28,8 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
     DeviceModule,
     BusStationLineModule,
     ItineraryModule,
-    ScheduleModule
+    ScheduleModule,
+    ShiftModule
   ],
   controllers: [],
 })

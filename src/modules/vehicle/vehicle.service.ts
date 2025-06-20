@@ -18,7 +18,7 @@ export class VehicleService {
     ) { }
         async create(createVehicle: CreateVehicleDto) {
         const company = await this.companyRepository.findOne({
-            where: { id: createVehicle.company_id },
+            where: { id: createVehicle.user_id  },
         });
 
         if (!company) {
@@ -38,7 +38,7 @@ export class VehicleService {
 
         const vehicleData = this.vehicleRepository.create({
             ...createVehicle,
-            company: company,
+            company: createVehicle.company,
             user: user,
             plate: createVehicle.plate.toUpperCase(),
             partner:createVehicle.partner.toUpperCase()
