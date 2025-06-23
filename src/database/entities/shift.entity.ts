@@ -1,6 +1,8 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn,ManyToOne,JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn,ManyToOne,JoinColumn ,OneToMany} from 'typeorm';
 import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Itinerary } from './itinerary.entity';
+
 
 @Entity('shift')
 export class Shift {
@@ -34,4 +36,7 @@ export class Shift {
   @IsDate()
   @ApiProperty({ description: 'Fecha de última actualización', example: '2025-06-13T12:00:00Z' })
   updated_at: Date;
+
+  @OneToMany(() => Itinerary, (itinerary) => itinerary.shift)
+  itineraries: Itinerary[];
 }
