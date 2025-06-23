@@ -13,6 +13,8 @@ import { Device } from './entities/device.entity';
 import { Itinerary } from './entities/itinerary.entity';
 import { Schedule } from './entities/schedule.entity';
 import { Vehicle } from './entities/vehicle.entity';
+import { Shift } from './entities/shift.entity';
+
 @Module({
   imports: [
     AppConfigModule, // Importa ConfigModule para acceder a las variables de entorno
@@ -37,7 +39,8 @@ import { Vehicle } from './entities/vehicle.entity';
           MqttCommandHistory,
           Schedule,
           User,
-          Vehicle
+          Vehicle,
+          Shift
         ],
         synchronize: false,
         ssl: process.env.DB_SSL === 'true'

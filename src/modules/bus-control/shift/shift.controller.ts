@@ -1,7 +1,17 @@
-import { Controller } from '@nestjs/common';
+import { Controller,Get,Param } from '@nestjs/common';
 import { ShiftService } from './shift.service';
 
 @Controller('shift')
 export class ShiftController {
-  constructor(private readonly scheduleService: ShiftService) {}
+  constructor(private readonly shiftService: ShiftService) {}
+
+  @Get()
+  getAll() {
+    return this.shiftService.findAll();
+  }
+
+  @Get(':id')
+  getOne(@Param('id') id: string) {
+    return this.shiftService.findOne(id);
+  }
 }

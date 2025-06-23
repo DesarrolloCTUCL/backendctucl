@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { MqttCommand } from './dto/bus-station-mqtt.dto';
 import { MqttService } from 'src/modules/mqtt/mqtt.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -89,8 +89,19 @@ export class BusStationService {
       throw new Error("No se pudo obtener el historial MQTT");
     }
   }
-}
 
+  async findAll(): Promise<BusStation[]> {
+    return this.busStationRepository.find();
+  }
+
+  async findOne(id: number): Promise<BusStation> {
+    const result = await this.busStationRepository.findOneBy({ id });
+    if (!result) {
+      throw new NotFoundException(`shift with ID ${id} not found`);
+    }
+    return result;
+  }
+}
 
 function convertToEcuadorTime(data: any[]) {
   return data.map(item => {

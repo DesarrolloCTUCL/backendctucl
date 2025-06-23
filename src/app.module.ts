@@ -12,6 +12,8 @@ import { BusStationLineModule } from './modules/bus-station-line/bus-station-lin
 import { ItineraryModule } from './modules/bus-control/itinerary/itinerary.module';
 import { ScheduleModule } from './modules/bus-control/schedule/schedule.module';
 import { ShiftModule } from './modules/bus-control/shift/shift.module';
+import { RechargepointModule } from './modules/recharge-point/recharge-point.module';
+import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/dispatch-display.module';
 
 
 
@@ -29,7 +31,11 @@ import { ShiftModule } from './modules/bus-control/shift/shift.module';
     BusStationLineModule,
     ItineraryModule,
     ScheduleModule,
-    ShiftModule
+    ShiftModule,
+    ItineraryModule,
+    ScheduleModule,
+    RechargepointModule,
+    DispatchDisplayModule
   ],
   controllers: [],
 })

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException} from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -53,5 +53,15 @@ export class VehicleService {
         };
         }
 
-
+        async findAll(): Promise<Vehicle[]> {
+            return this.vehicleRepository.find();
+          }
+        
+          async findOne(id: number): Promise<Vehicle> {
+            const result = await this.vehicleRepository.findOneBy({ register: id });
+            if (!result) {
+              throw new NotFoundException(`Itinerary with ID ${id} not found`);
+            }
+            return result;
+          }
 }
