@@ -51,6 +51,7 @@ export class DispatchDisplayService {
     for (const it of itinerarios) {
       const shift = it.shift;
       let estacionesFormateadas: {
+        numero: number;
         name: string;
         lat: number;
         long: number;
@@ -86,6 +87,7 @@ export class DispatchDisplayService {
           const hora = timeWithOffset.toTimeString().slice(0, 8); // "HH:MM:SS"
         
           return {
+            numero: ids[index],
             name: est.name,
             lat: est.lat,
             long: est.long,
