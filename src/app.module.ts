@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppConfigModule } from './config/config.module';
 import { UsersModule } from './modules/users/users.module';
 import { BusStationModule } from './modules/bus-control/bus-station/bus_station.module';
-import { MqttModule } from './modules/mqtt/mqtt.module';
+import { MqttModuleAWS } from './modules/bus-control/mqttBus/mqtt.module';
+import { LogGpsModule } from './modules/bus-control/mqttBus/log_gps.module';
 import { DatabaseModule } from './database/database.module';
 import { CompanyModule } from './modules/company/company.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
@@ -22,7 +23,6 @@ import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/di
     AppConfigModule, // Importa el módulo de configuración
     UsersModule,
     BusStationModule,
-    MqttModule,
     DatabaseModule,
     CompanyModule,
     VehicleModule,
@@ -35,7 +35,9 @@ import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/di
     ItineraryModule,
     ScheduleModule,
     RechargepointModule,
-    DispatchDisplayModule
+    DispatchDisplayModule,
+    MqttModuleAWS,
+    LogGpsModule,
   ],
   controllers: [],
 })
