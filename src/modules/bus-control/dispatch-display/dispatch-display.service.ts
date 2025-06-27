@@ -21,6 +21,7 @@ export class DispatchDisplayService {
 
   async obtenerItinerariosDeBus(vehicle_id: number): Promise<{
     vehicle_id: number;
+    id: number | null;
     itinerary: string;
     date: string | null;
     itinerarios: DispatchdisplayDTO[];
@@ -34,6 +35,7 @@ export class DispatchDisplayService {
       return {
         vehicle_id,
         itinerary: '',
+        id: null,
         date: null,
         itinerarios: [],
       };
@@ -46,7 +48,7 @@ export class DispatchDisplayService {
     });
 
     const resultado: DispatchdisplayDTO[] = [];
-
+    const idItinerario = itinerarios[0]?.id || null;
 
     for (const it of itinerarios) {
       const shift = it.shift;
@@ -100,7 +102,6 @@ export class DispatchDisplayService {
 
       resultado.push({
         recorrido: it.route,
-        id: it.id,
         hora_despacho: it.start_time,
         hora_fin: it.end_time,
         turno: {
@@ -113,6 +114,7 @@ export class DispatchDisplayService {
     return {
       vehicle_id,
       itinerary: despacho.itinerary,
+      id: idItinerario,
       date: despacho.date,
       itinerarios: resultado,
     };
