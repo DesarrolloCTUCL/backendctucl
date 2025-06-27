@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
+  OneToMany
 } from 'typeorm';
 import { IsString, IsNumber, IsDate, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Shift } from './shift.entity';
+import { PassengerCounter } from './passenger-counter.entity';
 
 @Entity('itinerary')
 export class Itinerary {
@@ -51,6 +53,9 @@ export class Itinerary {
   @ManyToOne(() => Shift, (shift) => shift.itineraries)
   @JoinColumn({ name: 'shift' })
   shift: Shift;
+
+  @OneToMany(() => PassengerCounter, (counter) => counter.intenary_id)
+  counter: PassengerCounter[]
 
   @CreateDateColumn()
   @IsDate()

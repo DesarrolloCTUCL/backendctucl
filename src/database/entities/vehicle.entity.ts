@@ -1,7 +1,8 @@
-import { Entity, PrimaryColumn, Column, ManyToOne,JoinColumn,PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne,JoinColumn,PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsPhoneNumber, IsNumber, IsIn, IsBoolean, IsOptional } from 'class-validator';
 import { User } from './user.entity';
+import { PassengerCounter } from './passenger-counter.entity';
 export enum OperationStatus {
     INACTIVE = 'inactivo',
     ON_ROUTE = 'en_ruta',
@@ -96,4 +97,8 @@ export class Vehicle {
     @Column({ type: 'boolean', default: true })
     @ApiProperty({ description: 'Indica si el bus está activo o eliminado', example: true })
     status: boolean;
+
+
+    @OneToMany(() => PassengerCounter, (counter) => counter.bus_id)
+    counter: PassengerCounter[]
 }
