@@ -15,6 +15,8 @@ import { ScheduleModule } from './modules/bus-control/schedule/schedule.module';
 import { ShiftModule } from './modules/bus-control/shift/shift.module';
 import { RechargepointModule } from './modules/recharge-point/recharge-point.module';
 import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/dispatch-display.module';
+import { PassengerCounterModule } from './modules/bus-control/passenger-counter/passenger-counter.module';
+
 
 
 
@@ -38,7 +40,9 @@ import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/di
     DispatchDisplayModule,
     MqttModuleAWS,
     LogGpsModule,
+    PassengerCounterModule
   ],
   controllers: [],
+  providers: [],
 })
 export class AppModule {}
