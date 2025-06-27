@@ -15,10 +15,10 @@ export class ItineraryService {
     return this.itineraryRepository.find();
   }
 
-  async findOne(id: string): Promise<Itinerary> {
-    const result = await this.itineraryRepository.findOneBy({ id });
+  async findOne(code: string): Promise<Itinerary> {
+    const result = await this.itineraryRepository.findOneBy({ code });
     if (!result) {
-      throw new NotFoundException(`Itinerary with ID ${id} not found`);
+      throw new NotFoundException(`Itinerary with ID ${code} not found`);
     }
     return result;
   }
