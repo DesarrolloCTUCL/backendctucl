@@ -1,15 +1,27 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn,ManyToOne,JoinColumn } from 'typeorm';
-import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn
+} from 'typeorm';
+import { IsString, IsNumber, IsDate, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Shift } from './shift.entity';
 
-
 @Entity('itinerary')
 export class Itinerary {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  @IsNumber()
+  @ApiProperty({ description: 'ID autoincremental del itinerario', example: 1 })
+  id: number;
+
+  @Column({ unique: true })
   @IsString()
-  @ApiProperty({ description: 'ID único del itinerario', example: 'it-1234' })
-  id: string;
+  @ApiProperty({ description: 'Código único del itinerario (ej: it-1234)', example: 'it-1234' })
+  code: string;
 
   @Column()
   @IsString()
@@ -37,18 +49,16 @@ export class Itinerary {
   km_traveled: string;
 
   @ManyToOne(() => Shift, (shift) => shift.itineraries)
-  @JoinColumn({ name: 'shift' }) // usa el nombre del campo actual
+  @JoinColumn({ name: 'shift' })
   shift: Shift;
 
   @CreateDateColumn()
   @IsDate()
-  @ApiProperty({ description: 'Fecha de creación del registro', example: '2025-06-13T10:00:00Z' })
+  @ApiProperty({ description: 'Fecha de creación del registro' })
   created_at: Date;
 
   @UpdateDateColumn()
   @IsDate()
-  @ApiProperty({ description: 'Fecha de última actualización', example: '2025-06-13T12:00:00Z' })
+  @ApiProperty({ description: 'Fecha de última actualización' })
   updated_at: Date;
-
-
 }

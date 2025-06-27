@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, ManyToOne,JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne,JoinColumn,PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsPhoneNumber, IsNumber, IsIn, IsBoolean, IsOptional } from 'class-validator';
 import { User } from './user.entity';
@@ -23,7 +23,11 @@ export enum Company {
 @Entity('vehicles')
 export class Vehicle {
 
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
+    @ApiProperty({ description: 'ID interno autoincremental del vehículo', example: 1 })
+    id: number;
+    
+    @Column({ unique: true })
     @IsNumber()
     @ApiProperty({ description: 'Número de registro del bus (ej: 1500 - 1738)', example: 1523 })
     register: number;

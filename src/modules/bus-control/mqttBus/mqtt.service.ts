@@ -30,12 +30,12 @@ export class MqttServiceAWS implements OnModuleInit {
     });
 
     this.client.on('connect', () => {
-      console.log('✅ Conectado a AWS IoT MQTT');
+      console.log(`✅ Conectado como: ${clientId}`);
       this.client.subscribe('buses/gps/+', (err) => {
         if (err) {
           console.error('❌ Error al suscribirse:', err.message);
         } else {
-          console.log('📡 Suscrito a buses/gps/+');
+          console.log('📡 Suscripción exitosa a buses/gps/+');
         }
       });
     });
