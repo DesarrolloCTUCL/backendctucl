@@ -27,7 +27,7 @@ export class DispatchDisplayService {
     itinerarios: DispatchdisplayDTO[];
   }> {
     const despacho = await this.despachoRepo.findOne({
-      where: { vehicle_id: vehicle_id.toString() },
+      where: { vehicle_id: vehicle_id },
       order: { date: 'DESC' },
     });
 

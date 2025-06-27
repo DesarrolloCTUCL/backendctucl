@@ -8,7 +8,7 @@ export class Schedule{
   id: number;
 
   @Column()
-  vehicle_id: string;
+  vehicle_id: number;
 
   @Column()
   date: string;
@@ -17,13 +17,13 @@ export class Schedule{
   itinerary: string;
 
   @Column() // plantear relacion con entidad de bus line en un futuro
-  line_id: string;
+  line_id: number;
   
   @Column()//plantear relacion con entidad de usuario en un futuro
-  user_id: string;
+  user_id: number;
 
   @Column()
-  driver: string;
+  driver: number;
 
   @Column()
   observations: string;
