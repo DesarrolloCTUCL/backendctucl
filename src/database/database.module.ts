@@ -50,10 +50,9 @@ import { PassengerCounter } from './entities/passenger-counter.entity';
         ssl: process.env.DB_SSL === 'true'
         ? { rejectUnauthorized: false }
         : false,
-     // Maneja sincronización con una variable
       }),
     }),
   ],
-  exports: [TypeOrmModule], // Exportamos TypeORM para usarlo en otros módulos
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}
