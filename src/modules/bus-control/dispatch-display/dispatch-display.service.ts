@@ -100,10 +100,11 @@ export class DispatchDisplayService {
 
       resultado.push({
         recorrido: it.route,
+        id: it.id,
         hora_despacho: it.start_time,
         hora_fin: it.end_time,
         turno: {
-          id: shift?.id || '',
+          itinerary: shift?.id || '',
           chainpc: estacionesFormateadas,
         },
       });

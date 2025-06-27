@@ -1,6 +1,6 @@
 
 export class ShiftDTO {
-  id: string;
+  itinerary: string;
   chainpc: {
     name: string;
     lat: number;
@@ -10,6 +10,7 @@ export class ShiftDTO {
 }
 
 export class DispatchdisplayDTO {
+    id: number;
     recorrido: string;
     hora_despacho: string;
     hora_fin: string;
