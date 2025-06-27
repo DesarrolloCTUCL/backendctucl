@@ -19,7 +19,7 @@ lerna-debug.log*
 # Tests
 /coverage
 /.nyc_output
-
+/src/database/migrations/migrations-local
 # IDEs and editors
 /.idea
 .project
