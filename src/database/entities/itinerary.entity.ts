@@ -16,54 +16,41 @@ import { PassengerCounter } from './passenger-counter.entity';
 @Entity('itinerary')
 export class Itinerary {
   @PrimaryGeneratedColumn()
-  @IsNumber()
-  @ApiProperty({ description: 'ID autoincremental del itinerario', example: 1 })
   id: number;
 
   @Column({ unique: true })
-  @IsString()
-  @ApiProperty({ description: 'Código único del itinerario (ej: it-1234)', example: 'it-1234' })
   code: string;
 
   @Column()
-  @IsString()
-  @ApiProperty({ description: 'ID de la ruta asociada', example: 'route-456' })
   route: string;
 
   @Column({ type: 'time' })
-  @IsString()
-  @ApiProperty({ description: 'Hora de inicio (formato HH:mm:ss)', example: '08:00:00' })
   start_time: string;
 
   @Column({ type: 'time' })
-  @IsString()
-  @ApiProperty({ description: 'Hora de fin (formato HH:mm:ss)', example: '10:30:00' })
   end_time: string;
 
   @Column()
-  @IsString()
-  @ApiProperty({ description: 'Nombre del itinerario', example: 'Ruta Norte 1' })
   itinerary: string;
 
   @Column()
-  @IsString()
-  @ApiProperty({ description: 'Kilómetros recorridos', example: '12.5' })
   km_traveled: string;
 
+  // Campo numérico que almacena el id de Shift (clave foránea)
+  @Column()
+  shift_id: number;
+
+  // Relación formal para acceder a datos de Shift
   @ManyToOne(() => Shift, (shift) => shift.itineraries)
-  @JoinColumn({ name: 'shift' })
+  @JoinColumn({ name: 'shift_id' })
   shift: Shift;
 
   @OneToMany(() => PassengerCounter, (counter) => counter.intenary_id)
-  counter: PassengerCounter[]
+  counter: PassengerCounter[];
 
   @CreateDateColumn()
-  @IsDate()
-  @ApiProperty({ description: 'Fecha de creación del registro' })
   created_at: Date;
 
   @UpdateDateColumn()
-  @IsDate()
-  @ApiProperty({ description: 'Fecha de última actualización' })
   updated_at: Date;
 }

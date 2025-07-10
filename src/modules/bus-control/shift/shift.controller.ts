@@ -11,7 +11,7 @@ export class ShiftController {
   }
 
   @Get(':id')
-  getOne(@Param('id') id: string) {
+  getOne(@Param('id') id: number) {
     return this.shiftService.findOne(id);
   }
 }

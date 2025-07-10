@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Schedule } from '../../../database/entities/schedule.entity';
@@ -32,13 +32,7 @@ export class DispatchDisplayService {
     });
 
     if (!despacho) {
-      return {
-        vehicle_id,
-        itinerary: '',
-        id: null,
-        date: null,
-        itinerarios: [],
-      };
+      throw new NotFoundException(`No itinerary found for vehicle ${vehicle_id}`);
     }
 
     const itinerarios = await this.itinerarioRepo.find({
@@ -105,7 +99,7 @@ export class DispatchDisplayService {
         hora_despacho: it.start_time,
         hora_fin: it.end_time,
         turno: {
-          itinerary: shift?.id || '',
+          itinerary: shift?.shiftcode || '',
           chainpc: estacionesFormateadas,
         },
       });

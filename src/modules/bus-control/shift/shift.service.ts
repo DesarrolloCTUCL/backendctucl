@@ -14,7 +14,7 @@ export class ShiftService {
         return this.shiftRepository.find();
       }
     
-      async findOne(id: string): Promise<Shift> {
+      async findOne(id: number): Promise<Shift> {
         const result = await this.shiftRepository.findOneBy({ id });
         if (!result) {
           throw new NotFoundException(`shift with ID ${id} not found`);

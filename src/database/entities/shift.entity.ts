@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn,ManyToOne,JoinColumn ,OneToMany} from 'typeorm';
+import { Entity,  PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn,ManyToOne,JoinColumn ,OneToMany} from 'typeorm';
 import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Itinerary } from './itinerary.entity';
@@ -6,10 +6,15 @@ import { Itinerary } from './itinerary.entity';
 
 @Entity('shift')
 export class Shift {
-  @PrimaryColumn()
-  @IsString()
+  @PrimaryGeneratedColumn()
+  @IsNumber()
   @ApiProperty({ description: 'ID único del turno', example: 'L10A' })
-  id: string;
+  id: number;
+
+  @Column()
+  @IsString()
+  @ApiProperty({ description: 'Código del turno', example: 'L10A' })
+  shiftcode: string;
 
   @Column()
   @IsString()
