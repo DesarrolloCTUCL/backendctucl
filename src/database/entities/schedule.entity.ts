@@ -11,7 +11,7 @@ export class Schedule{
   vehicle_id: number;
 
   @Column()
-  date: string;
+  date: Date;
 
   @Column()
   itinerary: string;
