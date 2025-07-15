@@ -3,6 +3,7 @@ export class ShiftDTO {
   itinerary: string;
   chainpc: {
     name: string;
+    radius:number;
     lat: number;
     long: number;
     hora: string; // Nueva propiedad

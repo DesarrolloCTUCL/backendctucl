@@ -58,6 +58,7 @@ export class DispatchDisplayService {
       const shift = it.shift;
       let estacionesFormateadas: {
         numero: number;
+        radius:number;
         name: string;
         lat: number;
         long: number;
@@ -91,6 +92,7 @@ export class DispatchDisplayService {
   
           return {
             numero: ids[index],
+            radius: est.radius,
             name: est.name,
             lat: est.lat,
             long: est.long,
