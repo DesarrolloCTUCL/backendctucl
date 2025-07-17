@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColumn,JoinColumn,ManyToOne,} from 'typeorm';
 import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { BusStation } from './bus-station.entity'; // Asegúrate de importar correctamente
 
 @Entity('log_gps')
 export class Log_gps{
@@ -20,9 +21,10 @@ export class Log_gps{
   @ApiProperty({ description: 'Hora de Registro punto deControl', example: "14:20:00" })
   time: string;
 
-  @Column() 
-  @ApiProperty({ description: 'Nombre punto deControl', example: "Parque central" })
-  control_point: string;
+  @ManyToOne(() => BusStation, { eager: true }) // eager si quieres que siempre cargue el objeto
+  @JoinColumn({ name: 'control_point_id' })
+  @ApiProperty({ description: 'ID del punto de control asociado', example: 7 })
+  control_point: BusStation;
   
   @Column('double precision')
   @ApiProperty({ description: 'Latitud geográfica del punto', example: -2.170998 })

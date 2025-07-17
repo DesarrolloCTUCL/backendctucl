@@ -1,6 +1,6 @@
 
 export class ShiftDTO {
-  itinerary: string;
+  shift: string;
   chainpc: {
     name: string;
     radius:number;
