@@ -39,8 +39,8 @@ export class Log_gps{
   speed: string;
 
   @Column()
-  @ApiProperty({ description: 'Itinerario del Bus', example: "HA156" })
-  itinerary: string;
+  @ApiProperty({ description: 'Nombre punto de control', example: "Parque Bolivar" })
+  pcontrol: string;
 
   @CreateDateColumn()
   create_at: Date;

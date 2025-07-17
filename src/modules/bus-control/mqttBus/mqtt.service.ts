@@ -55,11 +55,11 @@ export class MqttServiceAWS implements OnModuleInit {
     this.client.on('message', async (topic, payload) => {
       try {
         const data = JSON.parse(payload.toString());
-
+        
         await this.logGpsService.saveGpsData({
           vehicle_id: data.BusID,
-          itinerary: data.itinerario_id ? data.itinerario_id.toString() : '',
-          control_point: data.punto_control ?? null,
+          pcontrol: data.punto_controlname ?? '',      // nombre del punto
+          control_point: data.punto_control_id ?? null, // número del punto
           lat: data.latitud,
           long: data.longitud,
           speed: data.velocidad_kmh.toString(),
