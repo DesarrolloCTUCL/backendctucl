@@ -1,17 +1,14 @@
-// src/modules/bus-control/dto/dispatch-display.dto.ts
-
-export class ChainPcDTO {
-  name: string;
-  radius: number;
-  lat: number;
-  long: number;
-  hora: string;
-}
-
 export class ShiftDTO {
   shift_id: number | null;
   shift: string;
-  chainpc: ChainPcDTO[];
+  chainpc: {
+    numero: number;
+    name: string;
+    radius: number;
+    lat: number;
+    long: number;
+    hora: string;
+  }[];
 }
 
 export class DispatchdisplayDTO {
@@ -21,10 +18,19 @@ export class DispatchdisplayDTO {
   turno: ShiftDTO;
 }
 
-export class DispatchdisplayResponseDTO {
-  vehicl_id: number;
-  itinerary: string;
+export class DispatchResponseDTO {
+  vehicle_id: number;
   itinerary_id: number | null;
+  itinerary: string;
   date: Date | null;
   itinerarios: DispatchdisplayDTO[];
+}
+
+export class ChainPcDTO {
+  numero: number;
+  name: string;
+  radius: number;
+  lat: number;
+  long: number;
+  hora: string;
 }

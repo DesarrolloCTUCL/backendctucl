@@ -4,7 +4,7 @@ import { Repository, In } from 'typeorm';
 import { Schedule } from '../../../database/entities/schedule.entity';
 import { Itinerary } from '../../../database/entities/itinerary.entity';
 import { BusStation } from '../../../database/entities/bus-station.entity';
-import { DispatchdisplayDTO } from './dispatch-display.dto';
+import { DispatchdisplayDTO, DispatchResponseDTO,ChainPcDTO } from './dispatch-display.dto';
 
 @Injectable()
 export class DispatchDisplayService {
@@ -22,13 +22,7 @@ export class DispatchDisplayService {
   async obtenerItinerariosDeBus(
     vehicle_id: number,
     date: string,
-  ): Promise<{
-    vehicle_id: number;
-    itinerary_id: number | null;
-    itinerary: string;
-    date: Date | null;
-    itinerarios: DispatchdisplayDTO[];
-  }> {
+  ): Promise<DispatchResponseDTO> {
     const dateOnly = new Date(date); // 👈 convierte '2025-07-14' a Date
   
     const despacho = await this.despachoRepo.findOne({
@@ -56,14 +50,8 @@ export class DispatchDisplayService {
   
     for (const it of itinerarios) {
       const shift = it.shift;
-      let estacionesFormateadas: {
-        numero: number;
-        radius:number;
-        name: string;
-        lat: number;
-        long: number;
-        hora: string;
-      }[] = [];
+      let estacionesFormateadas: ChainPcDTO[] = [];
+
   
       if (shift?.chainpc && shift?.times) {
         const ids = shift.chainpc.split(',').map(id => parseInt(id.trim()));
