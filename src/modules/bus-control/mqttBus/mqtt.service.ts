@@ -56,10 +56,8 @@ export class MqttServiceAWS implements OnModuleInit {
       try {
         const data = JSON.parse(payload.toString());
     
-        // Parse fecha y hora para crear un objeto Date
-        const [day, month, year] = data.fecha.split('/');
-        const datetimeString = `${year}-${month}-${day}T${data.hora}`;
-        const datetime = new Date(datetimeString);
+        // Convertir datetime string a objeto Date
+        const datetime = new Date(data.datetime.replace(' ', 'T'));
     
         await this.logGpsService.saveGpsData({
           vehicle_id: data.BusID,
@@ -76,6 +74,7 @@ export class MqttServiceAWS implements OnModuleInit {
         console.error('❌ Error procesando mensaje MQTT:', err.message);
       }
     });
+    
 
     this.client.on('error', (err) => {
       console.error('❌ Error de conexión MQTT:', err.message);
