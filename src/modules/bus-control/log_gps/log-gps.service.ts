@@ -21,4 +21,19 @@ export class LogGPSService {
         }
         return result;
       }
+      async findByVehicleShiftAndDatetimeRange(
+        vehicle_id: number,
+        shift_id: number,
+        start_datetime: string,
+        end_datetime: string,
+      ): Promise<Log_gps[]> {
+        return this.shiftRepository.createQueryBuilder('log')
+          .where('log.vehicle_id = :vehicle_id', { vehicle_id })
+          .andWhere('log.shift_id = :shift_id', { shift_id })
+          .andWhere('log.datetime BETWEEN :start_datetime AND :end_datetime', {
+            start_datetime,
+            end_datetime,
+          })
+          .getMany();
+      }
 }
