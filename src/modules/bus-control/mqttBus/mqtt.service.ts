@@ -62,12 +62,14 @@ export class MqttServiceAWS implements OnModuleInit {
         await this.logGpsService.saveGpsData({
           vehicle_id: data.BusID,
           cpoint: data.punto_controlname ?? '',
-          cpoint_id: data.punto_control_id ?? null,
+          control_point_id: data.punto_control_id ?? null, 
+          shift_id: data.shift_id ?? null,  
           lat: data.latitud,
           long: data.longitud,
           speed: data.velocidad_kmh.toString(),
           datetime,
         });
+        
     
         console.log(`💾 Datos guardados de ${data.BusID}`);
       } catch (err) {
