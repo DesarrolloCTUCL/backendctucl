@@ -1,10 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColumn,JoinColumn,ManyToOne,} from 'typeorm';
-import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { BusStation } from './bus-station.entity'; // Asegúrate de importar correctamente
+import { BusStation } from './bus-station.entity';
+import { Shift } from './shift.entity';
 
 @Entity('log_gps')
-export class Log_gps{
+export class Log_gps {
   @PrimaryGeneratedColumn()
   @ApiProperty({ description: 'ID de Registro', example: 1 })
   id: number;
@@ -13,34 +21,43 @@ export class Log_gps{
   @ApiProperty({ description: 'ID del Bus', example: 1539 })
   vehicle_id: string;
 
-  @Column()
-  @ApiProperty({ description: 'Fecha de Registro punto deControl', example: "25/12/2025" })
-  date: string;
-
-  @Column()
-  @ApiProperty({ description: 'Hora de Registro punto deControl', example: "14:20:00" })
-  time: string;
+  @Column({ type: 'timestamp' })
+  @ApiProperty({ description: 'Fecha y hora del registro (timestamp)', example: '2025-12-25T14:20:00Z' })
+  datetime: Date;
 
   @ManyToOne(() => BusStation, { eager: true }) // eager si quieres que siempre cargue el objeto
   @JoinColumn({ name: 'control_point_id' })
   @ApiProperty({ description: 'ID del punto de control asociado', example: 7 })
-  control_point: BusStation;
+  cpoint_id: BusStation;
+
+  @Column()
+  @ApiProperty({ description: 'Nombre punto de control', example: 'Parque Bolivar' })
+  cpoint: string;
   
+  @Column({ nullable: true })
+  control_point_id?: number;
+
+
+  @ManyToOne(() => Shift, { eager: true, nullable: true }) // eager para que cargue automáticamente, nullable si no siempre tiene turno
+  @JoinColumn({ name: 'shift_id' }) // define la columna FK
+  @ApiProperty({ description: 'Turno asociado', type: () => Shift, example: { id: 1, shiftcode: 'L10A' } })
+  shift?: Shift;
+
+  @Column({ nullable: true })
+  shift_id?: number;
+
   @Column('double precision')
   @ApiProperty({ description: 'Latitud geográfica del punto', example: -2.170998 })
   lat: number;
 
   @Column('double precision')
-  @ApiProperty({ description: 'Longitud geográfica del punto', example: -79.922356})
+  @ApiProperty({ description: 'Longitud geográfica del punto', example: -79.922356 })
   long: number;
 
   @Column()
-  @ApiProperty({ description: 'Velocidad vehiculo', example: "40 Km/h" })
+  @ApiProperty({ description: 'Velocidad vehículo', example: '40 Km/h' })
   speed: string;
 
-  @Column()
-  @ApiProperty({ description: 'Nombre punto de control', example: "Parque Bolivar" })
-  pcontrol: string;
 
   @CreateDateColumn()
   create_at: Date;

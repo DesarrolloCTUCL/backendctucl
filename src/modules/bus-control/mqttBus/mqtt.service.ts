@@ -55,18 +55,22 @@ export class MqttServiceAWS implements OnModuleInit {
     this.client.on('message', async (topic, payload) => {
       try {
         const data = JSON.parse(payload.toString());
-        
+    
+        // Parse fecha y hora para crear un objeto Date
+        const [day, month, year] = data.fecha.split('/');
+        const datetimeString = `${year}-${month}-${day}T${data.hora}`;
+        const datetime = new Date(datetimeString);
+    
         await this.logGpsService.saveGpsData({
           vehicle_id: data.BusID,
-          pcontrol: data.punto_controlname ?? '',      // nombre del punto
-          control_point: data.punto_control_id ?? null, // número del punto
+          cpoint: data.punto_controlname ?? '',
+          cpoint_id: data.punto_control_id ?? null,
           lat: data.latitud,
           long: data.longitud,
           speed: data.velocidad_kmh.toString(),
-          date: data.fecha,
-          time: data.hora,
+          datetime,
         });
-
+    
         console.log(`💾 Datos guardados de ${data.BusID}`);
       } catch (err) {
         console.error('❌ Error procesando mensaje MQTT:', err.message);

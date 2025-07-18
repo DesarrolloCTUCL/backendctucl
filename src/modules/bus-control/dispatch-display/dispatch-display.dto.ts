@@ -1,5 +1,6 @@
 
 export class ShiftDTO {
+  id: number | null;
   shift: string;
   chainpc: {
     name: string;

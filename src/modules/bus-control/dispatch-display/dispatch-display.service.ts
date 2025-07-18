@@ -106,6 +106,7 @@ export class DispatchDisplayService {
         hora_despacho: it.start_time,
         hora_fin: it.end_time,
         turno: {
+          id: shift?.id || null,    
           shift: shift?.shiftcode || '',
           chainpc: estacionesFormateadas,
         },
