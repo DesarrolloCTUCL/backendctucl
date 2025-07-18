@@ -21,10 +21,10 @@ export class DispatchDisplayService {
 
   async obtenerItinerariosDeBus(
     vehicle_id: number,
-    date: string, // sigue viniendo como string del controlador
+    date: string,
   ): Promise<{
     vehicle_id: number;
-    id: number | null;
+    itinerary_id: number | null;
     itinerary: string;
     date: Date | null;
     itinerarios: DispatchdisplayDTO[];
@@ -106,7 +106,7 @@ export class DispatchDisplayService {
         hora_despacho: it.start_time,
         hora_fin: it.end_time,
         turno: {
-          id: shift?.id || null,    
+          shift_id: shift?.id || null,    
           shift: shift?.shiftcode || '',
           chainpc: estacionesFormateadas,
         },
@@ -116,7 +116,7 @@ export class DispatchDisplayService {
     return {
       vehicle_id,
       itinerary: despacho.itinerary,
-      id: idItinerario,
+      itinerary_id: idItinerario,
       date: despacho.date,
       itinerarios: resultado,
     };
