@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Schedule } from './../../../database/entities/schedule.entity';
+import { InternalServerErrorException } from '@nestjs/common';
 
 @Injectable()
 export class ScheduleService {
@@ -20,5 +21,14 @@ export class ScheduleService {
       throw new NotFoundException(`Itinerary with ID ${id} not found`);
     }
     return result;
+  }
+
+  async findByExactDate(date: Date): Promise<Schedule[]> {
+    const dateOnly = date.toISOString().split('T')[0];
+    console.log('🔎 Fecha buscada:', dateOnly);
+    return this.scheduleRepository
+      .createQueryBuilder('schedule')
+      .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
+      .getMany();
   }
 }

@@ -31,7 +31,6 @@ async function bootstrap() {
   });
   
 
-
   const config = new DocumentBuilder()
     .setTitle('CTUCL SIMTRA API')
     .setDescription('Api para el sistema SIMTRA de control de flota y gestion del consorcio') 
