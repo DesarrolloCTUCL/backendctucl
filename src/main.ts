@@ -12,11 +12,23 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
 
-  // Deshabilitar CORS completamente
+  const whitelist = [
+    'http://localhost:3000',
+    'https://ctucl-manager-frontend.vercel.app',
+    'https://frontendctucl-mtbdwdb0e-desarrolloctucls-projects.vercel.app',
+  ];
+  
   app.enableCors({
-    origin: ['http://localhost:3000','https://ctucl-manager-frontend.vercel.app','*'], // 👈 Permite el frontend
-    credentials: true, //
+    origin: (origin, callback) => {
+      if (!origin || whitelist.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    credentials: true,
   });
+  
 
 
   const config = new DocumentBuilder()
