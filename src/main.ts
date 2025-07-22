@@ -15,6 +15,7 @@ async function bootstrap() {
   const whitelist = [
     'http://localhost:3000',
     'https://ctucl-manager-frontend.vercel.app',
+    'https://frontendctucl.vercel.app',
     'https://frontendctucl-mtbdwdb0e-desarrolloctucls-projects.vercel.app',
   ];
   
