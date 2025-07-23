@@ -1,5 +1,6 @@
 // src/modules/gps/dto/create-gps.dto.ts
 import { IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsOptional } from 'class-validator';
 
 export class CreateGpsDto {
   @IsString()
@@ -15,5 +16,6 @@ export class CreateGpsDto {
   lng: number;
 
   @IsNumber()
-  speed: number;
+  @IsOptional()
+  speed?: number;
 }

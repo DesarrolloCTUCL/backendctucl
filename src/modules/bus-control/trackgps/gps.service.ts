@@ -13,10 +13,19 @@ export class GpsService {
   ) {}
 
   async save(dto: CreateGpsDto) {
-    const entry = this.gpsRepository.create({
-      ...dto,
-      timestamp: new Date(dto.timestamp),
-    });
-    return await this.gpsRepository.save(entry);
+    try {
+      const entry = this.gpsRepository.create({
+        ...dto,
+        timestamp: new Date(dto.timestamp),
+      });
+      const result = await this.gpsRepository.save(entry);
+      console.log('Guardado OK:');
+      return result;
+    } catch (error) {
+      console.error('Error guardando en BD:', error);
+      throw error; 
+    }
   }
+  
+  
 }

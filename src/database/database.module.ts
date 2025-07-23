@@ -16,6 +16,7 @@ import { Vehicle } from './entities/vehicle.entity';
 import { Shift } from './entities/shift.entity';
 import { Log_gps } from './entities/log-gps.entity';
 import { PassengerCounter } from './entities/passenger-counter.entity';
+import { TrackGps } from './entities/trackgps.entity';
 
 @Module({
   imports: [
@@ -44,7 +45,8 @@ import { PassengerCounter } from './entities/passenger-counter.entity';
           Vehicle,
           Shift,
           Log_gps,
-          PassengerCounter
+          PassengerCounter,
+          TrackGps
         ],
         synchronize: false,
         ssl: process.env.DB_SSL === 'true'
