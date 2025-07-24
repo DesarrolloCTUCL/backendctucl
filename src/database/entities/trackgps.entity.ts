@@ -7,7 +7,7 @@ export class TrackGps {
   id: number;
 
   @Column()
-  device_id: string;
+  device_id: number;
 
   @Column({ type: 'timestamp' })
   timestamp: Date;

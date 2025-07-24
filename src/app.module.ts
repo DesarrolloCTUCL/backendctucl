@@ -16,7 +16,7 @@ import { ShiftModule } from './modules/bus-control/shift/shift.module';
 import { RechargepointModule } from './modules/recharge-point/recharge-point.module';
 import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/dispatch-display.module';
 import { logGPSTable } from './modules/bus-control/log_gps/log-gps.module';
-import { GpsModule } from './modules/bus-control/trackgps/gps.module';
+import { TrackGpsModule } from './modules/bus-control/mqttBus/trackgps.module';
 
 
 
@@ -41,7 +41,7 @@ import { GpsModule } from './modules/bus-control/trackgps/gps.module';
     MqttModuleAWS,
     LogGpsModule,
     logGPSTable,
-    GpsModule
+    TrackGpsModule
   ],
   controllers: [],
 })

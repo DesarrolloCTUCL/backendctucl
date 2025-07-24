@@ -1,13 +1,12 @@
-// src/modules/gps/gps.module.ts
+// src/modules/gps/trackgps.module.ts
 import { Module } from '@nestjs/common';
-import { GpsController } from './gps.controller';
-import { GpsService } from './gps.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TrackGps } from './../../../database/entities/trackgps.entity';
+import { TrackGpsService } from './trackgps.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TrackGps])],
-  controllers: [GpsController],
-  providers: [GpsService],
+  providers: [TrackGpsService],
+  exports: [TrackGpsService],
 })
-export class GpsModule {}
+export class TrackGpsModule {}

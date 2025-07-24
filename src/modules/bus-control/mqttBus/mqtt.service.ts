@@ -5,13 +5,19 @@ import * as mqtt from 'mqtt';
 import * as fs from 'fs';
 import { certsPath } from '../../../config/mqtt.config';
 import { LogGpsService } from './log_gps.service';
+import { TrackGpsService } from './trackgps.service'; // Ajusta la ruta si es diferente
+import dayjs from 'dayjs';
+
 
 @Injectable()
 export class MqttServiceAWS implements OnModuleInit {
   private client: mqtt.MqttClient;
   private isConnected = false;
 
-  constructor(private readonly logGpsService: LogGpsService) {}
+  constructor(
+    private readonly logGpsService: LogGpsService,
+    private readonly trackGpsService: TrackGpsService
+  ) { }
 
   onModuleInit() {
     this.connectToMqtt();
@@ -41,13 +47,14 @@ export class MqttServiceAWS implements OnModuleInit {
     this.client.once('connect', () => {
       console.log(`✅ Conectado como: ${clientId}`);
 
-      this.client.subscribe('buses/gps/+', (err) => {
+      this.client.subscribe(['buses/gps/+', 'buses/gps_track/+'], (err) => {
         if (err) {
           console.error('❌ Error al suscribirse:', err.message);
         } else {
-          console.log('📡 Suscripción exitosa a buses/gps/+');
+          console.log('📡 Suscripción exitosa a buses/gps/+ y buses/gps_track/+');
         }
       });
+
 
       this.isConnected = true;
     });
@@ -55,28 +62,50 @@ export class MqttServiceAWS implements OnModuleInit {
     this.client.on('message', async (topic, payload) => {
       try {
         const data = JSON.parse(payload.toString());
-    
-        // Convertir datetime string a objeto Date
-        const datetime = new Date(data.datetime.replace(' ', 'T'));
-    
-        await this.logGpsService.saveGpsData({
-          vehicle_id: data.BusID,
-          cpoint: data.punto_controlname ?? '',
-          control_point_id: data.punto_control_id ?? null, 
-          shift_id: data.shift_id ?? null,  
-          lat: data.latitud,
-          long: data.longitud,
-          speed: data.velocidad_kmh.toString(),
-          datetime,
-        });
-        
-    
-        console.log(`💾 Datos guardados de ${data.BusID}`);
+        if (topic.startsWith('buses/gps/')) {
+          // Procesamiento existente
+          const datetime = new Date(data.datetime.replace(' ', 'T'));
+
+          await this.logGpsService.saveGpsData({
+            vehicle_id: data.BusID,
+            cpoint: data.punto_controlname ?? '',
+            control_point_id: data.punto_control_id ?? null,
+            shift_id: data.shift_id ?? null,
+            lat: data.latitud,
+            long: data.longitud,
+            speed: data.velocidad_kmh.toString(),
+            datetime,
+          });
+
+          console.log(`💾 Control Point guardado de ${data.BusID}`);
+        } else if (topic.startsWith('buses/gps_track/')) {
+          // 🆕 Procesamiento para trackgps
+          const [datePart, timePart] = data.timestamp.split(' ');
+          const [day, month, year] = datePart.split('/').map(Number);
+          const [hour, minute, second] = timePart.split(':').map(Number);
+
+          // Agregamos 5 horas al timestamp
+          const adjustedDate = new Date(year, month - 1, day, hour + 5, minute, second);
+
+          await this.trackGpsService.save({
+            device_id: Number(data.device_id),
+            timestamp: adjustedDate,
+            lat: data.lat,
+            lng: data.lng,
+            speed: data.speed,
+          });
+
+
+
+          console.log(`📍 TrackGPS guardado de ${data.device_id}`);
+        }
       } catch (err) {
         console.error('❌ Error procesando mensaje MQTT:', err.message);
+        console.error('📛 Payload recibido (crudo):', payload.toString());
       }
     });
-    
+
+
 
     this.client.on('error', (err) => {
       console.error('❌ Error de conexión MQTT:', err.message);
