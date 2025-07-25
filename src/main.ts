@@ -28,7 +28,7 @@ async function bootstrap() {
     'http://localhost:3000',
     'https://ctucl-manager-frontend.vercel.app',
     'https://frontendctucl.vercel.app',
-    'https://frontendctucl-1pn0bcdm1-desarrolloctucls-projects.vercel.app',
+    'https://frontendctucl-8yopp2yp9-desarrolloctucls-projects.vercel.app',
   ];
 
   app.enableCors({
