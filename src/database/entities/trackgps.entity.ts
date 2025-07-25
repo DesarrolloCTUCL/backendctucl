@@ -1,4 +1,3 @@
-// src/modules/gps/trackgps.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('trackgps')
