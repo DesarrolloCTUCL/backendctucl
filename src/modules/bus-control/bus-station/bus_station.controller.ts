@@ -5,7 +5,8 @@ import { CreateBusStationDto } from './dto/create-bus-station.dto';
 
 @Controller('bus-station')
 export class BusStationController {
-  constructor(private readonly bus_station_service: BusStationService) { }
+  constructor(private readonly bus_station_service: BusStationService) {}
+
   @Post('create')
   create(@Body() createBusStationDto: CreateBusStationDto) {
     return this.bus_station_service.create(createBusStationDto);
@@ -13,24 +14,17 @@ export class BusStationController {
 
   @Post('mqtt-command')
   executeCommand(@Body() mqttCommand: MqttCommand) {
-    return this.bus_station_service.exectMqttCommand(mqttCommand)
+    return this.bus_station_service.exectMqttCommand(mqttCommand);
   }
+
   @Get('mqtt-history')
   async getData() {
     return this.bus_station_service.getMqttHistory();
   }
 
-  @Get()
-  getAll() {
-    return this.bus_station_service.findAll();
-  }
-
-  @Get(':id')
-  getOne(@Param('id') id: number) {
-    return this.bus_station_service.findOne(id);
-  }
-  @Get('control-points')
+  @Get('control-points')  // <--- Mover esta ruta fija arriba de la dinámica
   async getControlPoints() {
+    console.log('⚡️ Entrando a getControlPoints');
     try {
       const result = await this.bus_station_service.findControlPoints();
       return {
@@ -46,5 +40,15 @@ export class BusStationController {
         data: null,
       };
     }
+  }
+
+  @Get()
+  getAll() {
+    return this.bus_station_service.findAll();
+  }
+
+  @Get(':id')   // <--- Ruta dinámica debe ir al final
+  getOne(@Param('id') id: number) {
+    return this.bus_station_service.findOne(id);
   }
 }
