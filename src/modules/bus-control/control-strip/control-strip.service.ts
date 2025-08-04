@@ -6,27 +6,40 @@ import { CreateControlStripDto } from './dto/create-control-strip.dto';
 
 @Injectable()
 export class ControlStripService {
-  private readonly logger = new Logger(ControlStripService.name);
+    private readonly logger = new Logger(ControlStripService.name);
 
-  constructor(
-    @InjectRepository(ControlStrip)
-    private readonly controlStripRepo: Repository<ControlStrip>,
-  ) {}
+    constructor(
+        @InjectRepository(ControlStrip)
+        private readonly controlStripRepo: Repository<ControlStrip>,
+    ) { }
 
-  async create(dto: CreateControlStripDto): Promise<ControlStrip> {
-    this.logger.log(`📥 Recibido DTO: ${JSON.stringify(dto)}`);
+    async create(dto: CreateControlStripDto): Promise<ControlStrip> {
+        this.logger.log(`📥 Recibido DTO: ${JSON.stringify(dto)}`);
 
-    try {
-      const newStrip = this.controlStripRepo.create(dto);
-      this.logger.log(`🛠️ Creando entidad: ${JSON.stringify(newStrip)}`);
+        try {
+            const newStrip = this.controlStripRepo.create(dto);
+            this.logger.log(`🛠️ Creando entidad: ${JSON.stringify(newStrip)}`);
 
-      const saved = await this.controlStripRepo.save(newStrip);
-      this.logger.log(`✅ Registro guardado con ID: ${saved.id}`);
+            const saved = await this.controlStripRepo.save(newStrip);
+            this.logger.log(`✅ Registro guardado con ID: ${saved.id}`);
 
-      return saved;
-    } catch (error) {
-      this.logger.error(`❌ Error al guardar ControlStrip: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Error al guardar la papeleta de control');
+            return saved;
+        } catch (error) {
+            this.logger.error(`❌ Error al guardar ControlStrip: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('Error al guardar la papeleta de control');
+        }
     }
-  }
+    async findAll(): Promise<ControlStrip[]> {
+        try {
+            const strips = await this.controlStripRepo.find({
+                relations: ['chainStrip'], // si tienes relaciones, inclúyelas aquí
+                order: { id: 'DESC' }, // opcional: ordena por ID descendente
+            });
+
+            return strips;
+        } catch (error) {
+            this.logger.error(`❌ Error al obtener ControlStrips: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('Error al obtener los registros');
+        }
+    }
 }

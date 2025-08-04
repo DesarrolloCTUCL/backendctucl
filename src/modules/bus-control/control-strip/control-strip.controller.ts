@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller,Get, Post } from '@nestjs/common';
 import { CreateControlStripDto } from './dto/create-control-strip.dto';
 import { ControlStripService } from './control-strip.service';
 
@@ -9,5 +9,9 @@ export class ControlStripController {
   @Post()
   create(@Body() dto: CreateControlStripDto) {
     return this.controlStripService.create(dto);
+  }
+  @Get()
+  findAll() {
+    return this.controlStripService.findAll();
   }
 }
