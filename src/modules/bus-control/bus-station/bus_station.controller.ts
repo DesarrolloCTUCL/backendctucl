@@ -31,11 +31,20 @@ export class BusStationController {
   }
   @Get('control-points')
   async getControlPoints() {
-    const result = await this.bus_station_service.findControlPoints();
-    return {
-      status: 'success',
-      message: 'Control points retrieved successfully',
-      data: result,
-    };
+    try {
+      const result = await this.bus_station_service.findControlPoints();
+      return {
+        status: 'success',
+        message: 'Control points retrieved successfully',
+        data: result,
+      };
+    } catch (error) {
+      console.error('❌ Error en getControlPoints:', error);
+      return {
+        status: 'error',
+        message: 'Internal server error',
+        data: null,
+      };
+    }
   }
 }

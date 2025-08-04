@@ -104,10 +104,16 @@ export class BusStationService {
   }
 
   async findControlPoints(): Promise<BusStation[]> {
-    return this.busStationRepository.find({
-      where: { type: BusStopType.CONTROL_POINT },
-    });
+    try {
+      return await this.busStationRepository.find({
+        where: { type: BusStopType.CONTROL_POINT },
+      });
+    } catch (err) {
+      console.error('❌ Error al buscar CONTROL_POINT:', err);
+      throw err;
+    }
   }
+  
 }
 
 function convertToEcuadorTime(data: any[]) {
