@@ -32,9 +32,9 @@ export class ControlStripService {
     async findAll(): Promise<ControlStrip[]> {
         try {
             const strips = await this.controlStripRepo.find({
-                relations: ['chainStrip'], // si tienes relaciones, inclúyelas aquí
-                order: { id: 'DESC' }, // opcional: ordena por ID descendente
+                order: { id: 'DESC' },
             });
+        
 
             return strips;
         } catch (error) {
