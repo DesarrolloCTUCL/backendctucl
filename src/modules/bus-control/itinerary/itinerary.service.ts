@@ -25,16 +25,32 @@ export class ItineraryService {
   }
 
   async update(code: string, updateDto: UpdateItineraryDto): Promise<Itinerary> {
-    const itinerary = await this.itineraryRepository.findOneBy({ code });
+    const oldItinerary = await this.itineraryRepository.findOneBy({ code });
   
-    if (!itinerary) {
+    if (!oldItinerary) {
       throw new NotFoundException(`Itinerary with code ${code} not found`);
     }
   
-    itinerary.start_time = updateDto.start_time;
-    itinerary.end_time = updateDto.end_time;
+    // Desactivar el registro anterior
+    oldItinerary.is_active = false;
+    await this.itineraryRepository.save(oldItinerary);
   
-    return this.itineraryRepository.save(itinerary);
+    // Crear nuevo registro con los datos nuevos
+    const newItinerary = this.itineraryRepository.create({
+      ...oldItinerary,
+      start_time: updateDto.start_time,
+      end_time: updateDto.end_time,
+      route: updateDto.route,
+      km_traveled: updateDto.km_traveled,
+      shift_id: Number(updateDto.shift_id),
+      effective_date: new Date(),
+      is_active: true,
+      id: undefined, // importante para que inserte uno nuevo
+      created_at: undefined,
+      updated_at: undefined,
+    });
+  
+    return await this.itineraryRepository.save(newItinerary);
   }
 
   async findByLine(line: string): Promise<Record<string, Itinerary[]>> {
