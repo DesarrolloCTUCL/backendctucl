@@ -18,6 +18,7 @@ import { DispatchDisplayModule } from './modules/bus-control/dispatch-display/di
 import { logGPSTable } from './modules/bus-control/log_gps/log-gps.module';
 import { TrackGpsModule } from './modules/bus-control/mqttBus/trackgps.module';
 import { GetTrackGpsModule } from './modules/bus-control/trackgps/get-trackgps.module';
+import { ControlStripModule } from './modules/bus-control/control-strip/control-strip.module';
 
 
 @Module({
@@ -42,7 +43,8 @@ import { GetTrackGpsModule } from './modules/bus-control/trackgps/get-trackgps.m
     LogGpsModule,
     logGPSTable,
     TrackGpsModule,
-    GetTrackGpsModule
+    GetTrackGpsModule,
+    ControlStripModule
   ],
   controllers: [],
 })
