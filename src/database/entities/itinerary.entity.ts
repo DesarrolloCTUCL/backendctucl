@@ -7,10 +7,13 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index, // ✅ importar Index
 } from 'typeorm';
 import { Shift } from './shift.entity';
 import { PassengerCounter } from './passenger-counter.entity';
 
+// ✅ Esto aplica un índice único a code solo cuando is_active es true
+@Index('uq_code_active', ['code'], { unique: true, where: `"is_active" = true` })
 @Entity('itinerary')
 export class Itinerary {
   @PrimaryGeneratedColumn()
@@ -44,11 +47,9 @@ export class Itinerary {
   @OneToMany(() => PassengerCounter, (counter) => counter.intenary_id)
   counter: PassengerCounter[];
 
-  // 👉 fecha desde la cual esta versión aplica
   @Column({ type: 'date' })
   effective_date: Date;
 
-  // 👉 indica si esta es la versión activa
   @Column({ default: true })
   is_active: boolean;
 
