@@ -14,11 +14,16 @@ export class ItineraryService {
   ) {}
 
   async findAll(): Promise<Itinerary[]> {
-    return this.itineraryRepository.find();
+    // Solo itinerarios activos
+    return this.itineraryRepository.find({
+      where: { is_active: true },
+    });
   }
 
   async findOne(code: string): Promise<Itinerary> {
-    const result = await this.itineraryRepository.findOneBy({ code });
+    const result = await this.itineraryRepository.findOne({
+      where: { code, is_active: true },
+    });
     if (!result) {
       throw new NotFoundException(`Itinerary with code ${code} not found`);
     }
@@ -27,17 +32,17 @@ export class ItineraryService {
 
   async update(code: string, updateDto: UpdateItineraryDto): Promise<Itinerary> {
     try {
-      const oldItinerary = await this.itineraryRepository.findOneBy({ code });
+      // Busca el registro activo actual para ese código
+      const oldItinerary = await this.itineraryRepository.findOneBy({ code, is_active: true });
 
       if (!oldItinerary) {
         throw new NotFoundException(`Itinerary with code ${code} not found`);
       }
 
-      // Desactivar el registro anterior
-      oldItinerary.is_active = false;
-      await this.itineraryRepository.save(oldItinerary);
+      // Desactiva todos los registros activos con ese código (por seguridad)
+      await this.itineraryRepository.update({ code, is_active: true }, { is_active: false });
 
-      // Crear nuevo registro
+      // Crea el nuevo registro activo con los datos nuevos
       const newItinerary = this.itineraryRepository.create({
         ...oldItinerary,
         start_time: updateDto.start_time,
@@ -47,8 +52,8 @@ export class ItineraryService {
         shift_id: Number(updateDto.shift_id),
         effective_date: new Date(),
         is_active: true,
-        id: undefined,
-        created_at: undefined,
+        id: undefined,         // Para que inserte nuevo
+        created_at: undefined, // Para que use la fecha actual
         updated_at: undefined,
       });
 
@@ -61,13 +66,13 @@ export class ItineraryService {
 
   async findByLine(line: string): Promise<Record<string, Itinerary[]>> {
     const allItineraries = await this.itineraryRepository.find({
-      where: { is_active: true },
+      where: { is_active: true }, // Solo activos
     });
-    
-    // Filtrar los que terminan en la línea deseada (ej. L2)
+
+    // Filtra los que terminan en la línea deseada (ej. L2)
     const filtered = allItineraries.filter((it) => it.code.endsWith(line));
 
-    // Agrupar por 'itinerary'
+    // Agrupa por 'itinerary'
     const grouped: Record<string, Itinerary[]> = {};
 
     for (const item of filtered) {
@@ -80,7 +85,7 @@ export class ItineraryService {
       grouped[groupKey].push(item);
     }
 
-    // Ordenar numéricamente dentro de cada grupo por el número antes del 'L'
+    // Ordena numéricamente dentro de cada grupo por el número antes del 'L'
     for (const key in grouped) {
       grouped[key] = grouped[key].sort((a, b) => {
         const getNumber = (code: string) =>
