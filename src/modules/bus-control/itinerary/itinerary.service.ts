@@ -60,8 +60,10 @@ export class ItineraryService {
   }
 
   async findByLine(line: string): Promise<Record<string, Itinerary[]>> {
-    const allItineraries = await this.itineraryRepository.find();
-
+    const allItineraries = await this.itineraryRepository.find({
+      where: { is_active: true },
+    });
+    
     // Filtrar los que terminan en la línea deseada (ej. L2)
     const filtered = allItineraries.filter((it) => it.code.endsWith(line));
 
