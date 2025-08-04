@@ -16,7 +16,7 @@ export class Itinerary {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   code: string;
 
   @Column()
