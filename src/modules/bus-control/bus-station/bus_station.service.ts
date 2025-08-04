@@ -6,6 +6,7 @@ import { MqttCommandHistory } from 'src/database/entities/mqtt-command-history.e
 import { Repository } from 'typeorm';
 import { CreateBusStationDto } from './dto/create-bus-station.dto';
 import { BusStation } from 'src/database/entities/bus-station.entity';
+import { BusStopType } from 'src/database/entities/bus-station.entity';
 
 @Injectable()
 export class BusStationService {
@@ -100,6 +101,12 @@ export class BusStationService {
       throw new NotFoundException(`shift with ID ${id} not found`);
     }
     return result;
+  }
+
+  async findControlPoints(): Promise<BusStation[]> {
+    return this.busStationRepository.find({
+      where: { type: BusStopType.CONTROL_POINT },
+    });
   }
 }
 

@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Post, Body, Get,Param ,HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, UseGuards, Post, Body, Get, Param, HttpStatus, HttpException } from '@nestjs/common';
 import { MqttCommand } from './dto/bus-station-mqtt.dto';
 import { BusStationService } from './bus_station.service';
 import { CreateBusStationDto } from './dto/create-bus-station.dto';
@@ -20,13 +20,22 @@ export class BusStationController {
     return this.bus_station_service.getMqttHistory();
   }
 
-    @Get()
-    getAll() {
-      return this.bus_station_service.findAll();
-    }
-  
-    @Get(':id')
-    getOne(@Param('id') id: number) {
-      return this.bus_station_service.findOne(id);
-    }
+  @Get()
+  getAll() {
+    return this.bus_station_service.findAll();
+  }
+
+  @Get(':id')
+  getOne(@Param('id') id: number) {
+    return this.bus_station_service.findOne(id);
+  }
+  @Get('control-points')
+  async getControlPoints() {
+    const result = await this.bus_station_service.findControlPoints();
+    return {
+      status: 'success',
+      message: 'Control points retrieved successfully',
+      data: result,
+    };
+  }
 }
