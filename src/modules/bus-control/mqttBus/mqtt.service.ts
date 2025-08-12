@@ -1,10 +1,11 @@
 // src/modules/bus-control/mqttBus/mqtt.service.ts
+
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import * as fs from 'fs';
 import { certsPath } from '../../../config/mqtt.config';
 import { LogGpsService } from './log_gps.service';
-import { TrackGpsService } from './trackgps.service';
+import { TrackGpsService } from './trackgps.service'; // Ajusta la ruta si es diferente
 
 @Injectable()
 export class MqttServiceAWS implements OnModuleInit {
@@ -58,8 +59,8 @@ export class MqttServiceAWS implements OnModuleInit {
     this.client.on('message', async (topic, payload) => {
       try {
         const data = JSON.parse(payload.toString());
-
         if (topic.startsWith('buses/gps/')) {
+          // Procesamiento existente
           const datetime = new Date(data.datetime.replace(' ', 'T'));
 
           await this.logGpsService.saveGpsData({
@@ -74,19 +75,23 @@ export class MqttServiceAWS implements OnModuleInit {
           });
 
           console.log(`💾 Control Point guardado de ${data.BusID}`);
-        } 
-        else if (topic.startsWith('buses/gps_track/')) {
-          // Tomamos la fecha y hora tal como viene (hora local Ecuador)
+        } else if (topic.startsWith('buses/gps_track/')) {
+          // Procesamiento para trackgps
+
+          // El timestamp viene en formato 'DD/MM/YYYY HH:mm:ss'
           const [datePart, timePart] = data.timestamp.split(' ');
           const [day, month, year] = datePart.split('/').map(Number);
           const [hour, minute, second] = timePart.split(':').map(Number);
 
-          // Guardamos la fecha como hora local Ecuador sin convertir a UTC
-          const localDate = new Date(year, month - 1, day, hour, minute, second);
+          // Construir fecha UTC a partir de la hora original recibida
+          const originalDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+
+          // Restar 5 horas para obtener la hora local de Ecuador
+          originalDate.setHours(originalDate.getHours() - 5);
 
           await this.trackGpsService.save({
             device_id: Number(data.device_id),
-            timestamp: localDate,
+            timestamp: originalDate,
             lat: data.lat,
             lng: data.lng,
             speed: data.speed,
