@@ -27,9 +27,22 @@ export class TrackGpsService {
   }
 
   async findLastByDevice(device_id: number) {
-    return await this.trackGpsRepo.findOne({
+    const lastRecord = await this.trackGpsRepo.findOne({
       where: { device_id },
       order: { timestamp: 'DESC' },
     });
+  
+    if (!lastRecord) return null;
+  
+    // Ajustar a UTC-5
+    const adjusted = new Date(lastRecord.timestamp);
+    adjusted.setHours(adjusted.getHours() - 5);
+  
+    // Reemplazar el valor original con la hora ajustada
+    return {
+      ...lastRecord,
+      timestamp: adjusted.toISOString().replace('Z', ''), // sin la Z para que no vuelva a interpretarlo como UTC
+    };
   }
+  
 }
