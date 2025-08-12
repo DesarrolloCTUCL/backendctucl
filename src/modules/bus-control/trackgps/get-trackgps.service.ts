@@ -10,10 +10,16 @@ export class TrackGpsService {
     private readonly trackGpsRepo: Repository<TrackGps>,
   ) {}
 
+  private parseLocalDate(dateStr: string) {
+    const [datePart, timePart] = dateStr.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute, second] = timePart.split(':').map(Number);
+    return new Date(year, month - 1, day, hour, minute, second || 0);
+  }
+
   async findByDeviceAndRange(device_id: number, start: string, end: string) {
-    // Convertir strings a Date sin alterar la zona horaria (construcción explícita)
-    const startDate = new Date(start.replace('T', ' ') + ':00');
-    const endDate = new Date(end.replace('T', ' ') + ':00');
+    const startDate = this.parseLocalDate(start);
+    const endDate = this.parseLocalDate(end);
 
     return await this.trackGpsRepo.find({
       where: {

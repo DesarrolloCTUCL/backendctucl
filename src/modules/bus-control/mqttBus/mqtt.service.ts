@@ -1,13 +1,10 @@
 // src/modules/bus-control/mqttBus/mqtt.service.ts
-
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import * as fs from 'fs';
 import { certsPath } from '../../../config/mqtt.config';
 import { LogGpsService } from './log_gps.service';
-import { TrackGpsService } from './trackgps.service'; // Ajusta la ruta si es diferente
-import dayjs from 'dayjs';
-
+import { TrackGpsService } from './trackgps.service';
 
 @Injectable()
 export class MqttServiceAWS implements OnModuleInit {
@@ -17,7 +14,7 @@ export class MqttServiceAWS implements OnModuleInit {
   constructor(
     private readonly logGpsService: LogGpsService,
     private readonly trackGpsService: TrackGpsService
-  ) { }
+  ) {}
 
   onModuleInit() {
     this.connectToMqtt();
@@ -55,15 +52,14 @@ export class MqttServiceAWS implements OnModuleInit {
         }
       });
 
-
       this.isConnected = true;
     });
 
     this.client.on('message', async (topic, payload) => {
       try {
         const data = JSON.parse(payload.toString());
+
         if (topic.startsWith('buses/gps/')) {
-          // Procesamiento existente
           const datetime = new Date(data.datetime.replace(' ', 'T'));
 
           await this.logGpsService.saveGpsData({
@@ -78,24 +74,23 @@ export class MqttServiceAWS implements OnModuleInit {
           });
 
           console.log(`💾 Control Point guardado de ${data.BusID}`);
-        } else if (topic.startsWith('buses/gps_track/')) {
-          // 🆕 Procesamiento para trackgps
+        } 
+        else if (topic.startsWith('buses/gps_track/')) {
+          // Tomamos la fecha y hora tal como viene (hora local Ecuador)
           const [datePart, timePart] = data.timestamp.split(' ');
           const [day, month, year] = datePart.split('/').map(Number);
           const [hour, minute, second] = timePart.split(':').map(Number);
 
-          // Agregamos 5 horas al timestamp
-          const adjustedDate = new Date(year, month - 1, day, hour + 5, minute, second);
+          // Guardamos la fecha como hora local Ecuador sin convertir a UTC
+          const localDate = new Date(year, month - 1, day, hour, minute, second);
 
           await this.trackGpsService.save({
             device_id: Number(data.device_id),
-            timestamp: adjustedDate,
+            timestamp: localDate,
             lat: data.lat,
             lng: data.lng,
             speed: data.speed,
           });
-
-
 
           console.log(`📍 TrackGPS guardado de ${data.device_id}`);
         }
@@ -104,8 +99,6 @@ export class MqttServiceAWS implements OnModuleInit {
         console.error('📛 Payload recibido (crudo):', payload.toString());
       }
     });
-
-
 
     this.client.on('error', (err) => {
       console.error('❌ Error de conexión MQTT:', err.message);
