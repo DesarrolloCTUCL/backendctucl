@@ -25,4 +25,11 @@ export class TrackGpsService {
       },
     });
   }
+
+  async findLastByDevice(device_id: number) {
+    return await this.trackGpsRepo.findOne({
+      where: { device_id },
+      order: { timestamp: 'DESC' },
+    });
+  }
 }
