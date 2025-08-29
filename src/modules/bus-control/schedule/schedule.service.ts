@@ -13,29 +13,47 @@ export class ScheduleService {
   ) {}
 
   async create(createScheduleDto: CreateScheduleDto): Promise<Schedule> {
-    // 🔍 Normalizamos la fecha para comparar solo el día (sin horas/minutos/segundos)
-    const scheduleDate = new Date(createScheduleDto.date);
-    scheduleDate.setHours(0, 0, 0, 0);
-
-    // Verificar si ya existe un despacho para el mismo bus en esa fecha
-    const existing = await this.scheduleRepository.findOne({
-      where: {
-        vehicle_id: createScheduleDto.vehicle_id,
-        date: scheduleDate,
-      },
-    });
-
-    if (existing) {
-      throw new BadRequestException(
-        `El vehículo ${createScheduleDto.vehicle_id} ya tiene un despacho asignado para la fecha ${scheduleDate.toISOString().split('T')[0]}`,
+    try {
+      // 🔍 Normalizamos la fecha para comparar solo el día (sin horas/minutos/segundos)
+      const scheduleDate = new Date(createScheduleDto.date);
+      scheduleDate.setHours(0, 0, 0, 0);
+  
+      // Verificar si ya existe un despacho para el mismo bus en esa fecha
+      const existing = await this.scheduleRepository.findOne({
+        where: {
+          vehicle_id: createScheduleDto.vehicle_id,
+          date: scheduleDate,
+        },
+      });
+  
+      if (existing) {
+        throw new BadRequestException(
+          `El vehículo ${createScheduleDto.vehicle_id} ya tiene un despacho asignado para la fecha ${scheduleDate.toISOString().split('T')[0]}`,
+        );
+      }
+  
+      // Crear y guardar nuevo despacho
+      const newSchedule = this.scheduleRepository.create({
+        ...createScheduleDto,
+        date: scheduleDate, // ✅ nos aseguramos que siempre vaya en formato Date
+      });
+  
+      return await this.scheduleRepository.save(newSchedule);
+  
+    } catch (error) {
+      console.error("❌ Error al crear despacho:", error);
+  
+      if (error instanceof BadRequestException) {
+        throw error; // ya manejado arriba
+      }
+  
+      // cualquier otro error inesperado
+      throw new InternalServerErrorException(
+        error.message || "Error inesperado al crear el despacho"
       );
     }
-
-    // Crear y guardar nuevo despacho
-    const newSchedule = this.scheduleRepository.create(createScheduleDto);
-    return await this.scheduleRepository.save(newSchedule);
   }
-
+  
   async findAll(): Promise<Schedule[]> {
     return this.scheduleRepository.find();
   }
