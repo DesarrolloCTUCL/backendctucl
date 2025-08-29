@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param,Post,Body, Query } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { Schedule } from './../../../database/entities/schedule.entity';
 import { BadRequestException } from '@nestjs/common';
+import { CreateScheduleDto } from './dto/schedule.dto';
 
 
 @Controller('schedule')
@@ -28,7 +29,10 @@ export class ScheduleController {
     return this.scheduleService.findOne(id);
   }
 
-
+  @Post()
+  async create(@Body() createScheduleDto: CreateScheduleDto): Promise<Schedule> {
+    return this.scheduleService.create(createScheduleDto);
+  }
 
 
 }
