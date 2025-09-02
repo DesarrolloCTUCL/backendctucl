@@ -1,6 +1,7 @@
 import { Body, Controller, Post, Get,Param } from '@nestjs/common';
 import { VehicleService } from './vehicle.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { CreateCounterDto } from './dto/create-counter.dto';
 
 @Controller('vehicle')
 export class VehicleController {
@@ -11,6 +12,12 @@ export class VehicleController {
     return this.vehicleService.create(createVehicle);
     
   }
+
+  @Post('counter')
+  counter(@Body() createCounter: CreateCounterDto) {
+    return this.vehicleService.registerCounter(createCounter);
+  }
+
 
   @Get()
   getAll() {

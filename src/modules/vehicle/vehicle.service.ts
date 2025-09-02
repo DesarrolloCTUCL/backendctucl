@@ -1,24 +1,32 @@
-import { Injectable, NotFoundException} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vehicle } from 'src/database/entities/vehicle.entity';
 import { User } from 'src/database/entities/user.entity';
 import { Company } from 'src/database/entities/company.entity';
+import { PassengerCounter } from 'src/database/entities/passenger-counter.entity';
+import { CreateCounterDto } from './dto/create-counter.dto';
+import { Itinerary } from 'src/database/entities/itinerary.entity';
+
 
 @Injectable()
 export class VehicleService {
     constructor(
         @InjectRepository(Vehicle)
         private readonly vehicleRepository: Repository<Vehicle>,
+        @InjectRepository(PassengerCounter)
+        private readonly passengerRepository: Repository<PassengerCounter>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-         @InjectRepository(Company)
+        @InjectRepository(Company)
         private readonly companyRepository: Repository<Company>,
+        @InjectRepository(Itinerary)
+        private readonly itineraryRepository: Repository<Itinerary>,
     ) { }
-        async create(createVehicle: CreateVehicleDto) {
+    async create(createVehicle: CreateVehicleDto) {
         const company = await this.companyRepository.findOne({
-            where: { id: createVehicle.user_id  },
+            where: { id: createVehicle.user_id },
         });
 
         if (!company) {
@@ -28,10 +36,10 @@ export class VehicleService {
         let user: User | undefined = undefined;
         if (createVehicle.user_id !== null && createVehicle.user_id !== undefined) {
             const foundUser = await this.userRepository.findOne({
-            where: { id: createVehicle.user_id },
+                where: { id: createVehicle.user_id },
             });
             if (!foundUser) {
-            throw new Error('El usuario no existe');
+                throw new Error('El usuario no existe');
             }
             user = foundUser;
         }
@@ -41,27 +49,59 @@ export class VehicleService {
             company: createVehicle.company,
             user: user,
             plate: createVehicle.plate.toUpperCase(),
-            partner:createVehicle.partner.toUpperCase()
+            partner: createVehicle.partner.toUpperCase()
         });
 
         const vehicle = await this.vehicleRepository.save(vehicleData);
+
 
         return {
             message: 'Vehicle created successfully',
             result: vehicle,
             status: 201,
         };
-        }
+    }
 
-        async findAll(): Promise<Vehicle[]> {
-            return this.vehicleRepository.find();
-          }
-        
-          async findOne(id: number): Promise<Vehicle> {
-            const result = await this.vehicleRepository.findOneBy({ register: id });
-            if (!result) {
-              throw new NotFoundException(`Itinerary with ID ${id} not found`);
+    async findAll(): Promise<Vehicle[]> {
+        return this.vehicleRepository.find();
+    }
+
+    async findOne(id: number): Promise<Vehicle> {
+        const result = await this.vehicleRepository.findOneBy({ register: id });
+        if (!result) {
+            throw new NotFoundException(`Itinerary with ID ${id} not found`);
+        }
+        return result;
+    }
+
+    async registerCounter(createCounter: CreateCounterDto) {
+        const vehicle = await this.vehicleRepository.findOne({
+            where: { id: createCounter.bus_id },
+        });
+        if (!vehicle) {
+            throw new NotFoundException(`Vehicle with ID ${createCounter.bus_id} not found`);
+        }
+        let itinerary: Itinerary | null = null;
+        if (createCounter.itinerary_id != null) {
+            itinerary = await this.itineraryRepository.findOne({
+                where: { id: createCounter.itinerary_id },
+            });
+            if (!itinerary) {
+                throw new NotFoundException(`Itinerary with ID ${createCounter.itinerary_id} not found`);
             }
-            return result;
-          }
+        }
+        const counter = this.passengerRepository.create({
+            passengers: createCounter.passengers,
+            start_time: createCounter.start_time,
+            end_time: createCounter.end_time,
+            bus_id: vehicle,
+            intenary_id: itinerary ?? null,
+        });
+        const result = await this.passengerRepository.save(counter);
+        return {
+            message: 'Counter created successfully',
+            result,
+        };
+    }
+
 }

@@ -74,7 +74,7 @@ export class MqttServiceAWS implements OnModuleInit {
             datetime,
           });
 
-          console.log(`💾 Control Point guardado de ${data.BusID}`);
+
         } else if (topic.startsWith('buses/gps_track/')) {
           // Procesamiento para trackgps
         
@@ -97,7 +97,6 @@ export class MqttServiceAWS implements OnModuleInit {
             speed: data.speed,
           });
         
-          console.log(`📍 TrackGPS guardado de ${data.device_id} con hora local: ${utcDate.toISOString()}`);
         }
       } catch (err) {
         console.error('❌ Error procesando mensaje MQTT:', err.message);

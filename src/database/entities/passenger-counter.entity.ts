@@ -11,7 +11,7 @@ import {
   IsDate,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Vehicle } from './vehicle.entity';
 import { Itinerary } from './itinerary.entity';
 
@@ -33,10 +33,13 @@ export class PassengerCounter {
   bus_id: Vehicle;
 
 
-  @ManyToOne(() => Itinerary, (itinerary) => itinerary.counter)
+  @ManyToOne(() => Itinerary, (itinerary) => itinerary.counter, {
+  nullable: true,      
+  onDelete: 'SET NULL',  
+  })
   @JoinColumn({ name: 'itinerary_id' })
-  @ApiProperty({ description: 'id del intinerario', example: 1 })
-  intenary_id: Itinerary;
+  @ApiPropertyOptional({ description: 'id del itinerario', example: 1, nullable: true })
+  intenary_id?: Itinerary | null;
   
   @Column({ type: 'timestamp' })
   @IsDate()
