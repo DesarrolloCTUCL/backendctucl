@@ -6,7 +6,7 @@ import { Vehicle } from 'src/database/entities/vehicle.entity';
 import { User } from 'src/database/entities/user.entity';
 import { Company } from 'src/database/entities/company.entity';
 import { PassengerCounter } from 'src/database/entities/passenger-counter.entity';
-import { CreateCounterDto } from './dto/create-counter.dto';
+import { CreatePassengerCounterDto } from './dto/create-counter.dto';
 import { Itinerary } from 'src/database/entities/itinerary.entity';
 
 
@@ -74,7 +74,7 @@ export class VehicleService {
         return result;
     }
 
-    async registerCounter(createCounter: CreateCounterDto) {
+    async registerCounter(createCounter: CreatePassengerCounterDto) {
         const vehicle = await this.vehicleRepository.findOne({
             where: { id: createCounter.bus_id },
         });
@@ -82,20 +82,19 @@ export class VehicleService {
             throw new NotFoundException(`Vehicle with ID ${createCounter.bus_id} not found`);
         }
         let itinerary: Itinerary | null = null;
-        if (createCounter.itinerary_id != null) {
+        if (createCounter.intenary_id != null) {
             itinerary = await this.itineraryRepository.findOne({
-                where: { id: createCounter.itinerary_id },
+                where: { id: createCounter.intenary_id },
             });
             if (!itinerary) {
-                throw new NotFoundException(`Itinerary with ID ${createCounter.itinerary_id} not found`);
+                throw new NotFoundException(`Itinerary with ID ${createCounter.intenary_id} not found`);
             }
         }
         const counter = this.passengerRepository.create({
-            passengers: createCounter.passengers,
-            start_time: createCounter.start_time,
-            end_time: createCounter.end_time,
+            timestamp: createCounter.timestamp,
             bus_id: vehicle,
             intenary_id: itinerary ?? null,
+            special:createCounter.special
         });
         const result = await this.passengerRepository.save(counter);
         return {

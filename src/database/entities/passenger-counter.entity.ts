@@ -9,6 +9,7 @@ import {
 import {
   IsInt,
   IsDate,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -22,11 +23,6 @@ export class PassengerCounter {
   @ApiProperty({ description: 'ID único del reporte de conteo', example: 1 })
   id: number;
 
-  @Column()
-  @IsInt()
-  @ApiProperty({ description: 'Número total de pasajeros contados', example: 300 })
-  passengers: number;
-
   @ManyToOne(() => Vehicle, (vehicle) => vehicle.counter)
   @JoinColumn({ name: 'bus_id' })
   @ApiProperty({ description: 'id del bus', example: 1 })
@@ -34,28 +30,26 @@ export class PassengerCounter {
 
 
   @ManyToOne(() => Itinerary, (itinerary) => itinerary.counter, {
-  nullable: true,      
-  onDelete: 'SET NULL',  
+    nullable: true,
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'itinerary_id' })
   @ApiPropertyOptional({ description: 'id del itinerario', example: 1, nullable: true })
   intenary_id?: Itinerary | null;
-  
-  @Column({ type: 'timestamp' })
-  @IsDate()
-  @Type(() => Date)
-  @ApiProperty({ description: 'Tiempo de inicio del conteo', example: '2025-06-13T10:00:00Z' })
-  start_time: Date;
+
 
   @Column({ type: 'timestamp' })
   @IsDate()
   @Type(() => Date)
-  @ApiProperty({ description: 'Tiempo de finalización del conteo', example: '2025-06-13T10:30:00Z' })
-  end_time: Date;
+  @ApiProperty({ description: 'Tiempo de registro del conteo', example: '2025-06-13T10:00:00Z' })
+  timestamp: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  @IsDate()
-  @Type(() => Date)
-  @ApiProperty({ description: 'Fecha de creación del registro', example: '2025-06-13T10:35:00Z' })
-  created_at: Date;
+
+  @Column({ type: 'boolean' })
+  @IsBoolean()
+  @Type(() => Boolean) // 🔥 Añadir esto es buena práctica para transformar correctamente
+  @ApiProperty({ description: 'conteo especial o no', example: false })
+  special: boolean;
+
+
 }
