@@ -139,12 +139,13 @@ async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinera
   const sheet = workbook.Sheets[sheetName];
   const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
 
-  // Columnas que esperas en TU Excel
+  // Columnas que vienen en TU Excel real
   const required = [
-    'idItinerario',
+    'idItinerarios',
     'Recorrido',
     'Hora despacho',
-    'Hora fin Itinerario',
+    'Hora fin',
+    'Itinerario',
     'Km recorridos',
     'turno',
   ];
@@ -158,9 +159,10 @@ async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinera
 
   // Mapeo de columnas del Excel -> DTO que espera bulkUpdate
   const toDto = (r: any): UpdateItineraryWithCodeDto => ({
-    code: String(r['idItinerario']).trim(),
+    code: String(r['idItinerarios']).trim(),
     start_time: String(r['Hora despacho']).trim(),
-    end_time: String(r['Hora fin Itinerario']).trim(),
+    // 🔥 Aquí concatenamos "Hora fin" + "Itinerario"
+    end_time: `${String(r['Hora fin']).trim()} ${String(r['Itinerario']).trim()}`.trim(),
     route: String(r['Recorrido']).trim(),
     km_traveled: r['Km recorridos']
       ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
@@ -174,6 +176,7 @@ async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinera
 
   return this.bulkUpdate({ itineraries });
 }
+
 
 
   // ---------- EXISTENTE ----------
