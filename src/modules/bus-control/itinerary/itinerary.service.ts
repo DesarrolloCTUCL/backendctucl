@@ -160,15 +160,15 @@ async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinera
   // Mapeo de columnas del Excel -> DTO que espera bulkUpdate
   const toDto = (r: any): UpdateItineraryWithCodeDto => ({
     code: String(r['idItinerarios']).trim(),
-    start_time: String(r['Hora despacho']).trim(),
-    // 🔥 Aquí concatenamos "Hora fin" + "Itinerario"
-    end_time: `${String(r['Hora fin']).trim()} ${String(r['Itinerario']).trim()}`.trim(),
+    start_time: String(r['Hora despacho']).trim(), // ejemplo: "06:15:00"
+    end_time: String(r['Hora fin']).trim(),        // SOLO hora, sin concatenar
     route: String(r['Recorrido']).trim(),
     km_traveled: r['Km recorridos']
       ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
       : 0,
     shift_id: String(r['turno']).trim(),
   });
+  
 
   const itineraries = rows
     .map(toDto)
