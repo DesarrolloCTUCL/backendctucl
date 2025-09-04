@@ -11,8 +11,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CreatePassengerCounterDto {
   @IsInt()
   @IsNotEmpty()
-  @ApiProperty({ description: 'ID del bus (Vehicle)', example: 1 })
-  bus_id: number;
+  @ApiProperty({ description: 'ID del bus (Vehicle)', example: 1734 })
+  bus: number;
 
   @IsOptional()
   @IsInt()

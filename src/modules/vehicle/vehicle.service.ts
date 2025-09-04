@@ -76,10 +76,10 @@ export class VehicleService {
 
     async registerCounter(createCounter: CreatePassengerCounterDto) {
         const vehicle = await this.vehicleRepository.findOne({
-            where: { id: createCounter.bus_id },
+            where: { register: createCounter.bus },
         });
         if (!vehicle) {
-            throw new NotFoundException(`Vehicle with ID ${createCounter.bus_id} not found`);
+            throw new NotFoundException(`Vehicle with ID ${createCounter.bus} not found`);
         }
         let itinerary: Itinerary | null = null;
         if (createCounter.intenary_id != null) {
