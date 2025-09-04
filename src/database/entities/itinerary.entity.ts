@@ -34,8 +34,9 @@ export class Itinerary {
   @Column()
   itinerary: string;
 
-  @Column()
-  km_traveled: string;
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  km_traveled: number;
+  
 
   @Column()
   shift_id: number;

@@ -1,5 +1,5 @@
 // itinerary/dto/update-itinerary.dto.ts
-import { IsString, IsNotEmpty, IsNumberString } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumberString, IsNumber } from 'class-validator';
 
 export class UpdateItineraryDto {
   @IsString()
@@ -14,10 +14,11 @@ export class UpdateItineraryDto {
   @IsNotEmpty()
   route: string;
 
-  @IsString()
+  @IsNumber(
+    { maxDecimalPlaces: 2 }, // hasta 2 decimales
+  )
   @IsNotEmpty()
-  km_traveled: string;
-
+  km_traveled: number;
   @IsNumberString()
   @IsNotEmpty()
   shift_id : string;
