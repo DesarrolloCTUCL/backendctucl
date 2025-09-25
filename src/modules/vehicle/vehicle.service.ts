@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vehicle } from 'src/database/entities/vehicle.entity';
 import { User } from 'src/database/entities/user.entity';
@@ -8,7 +8,7 @@ import { Company } from 'src/database/entities/company.entity';
 import { PassengerCounter } from 'src/database/entities/passenger-counter.entity';
 import { CreatePassengerCounterDto } from './dto/create-counter.dto';
 import { Itinerary } from 'src/database/entities/itinerary.entity';
-
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class VehicleService {
@@ -65,11 +65,44 @@ export class VehicleService {
     async findAll(): Promise<Vehicle[]> {
         return this.vehicleRepository.find();
     }
+    
+   
+
+    async findCountersById(id: number, date: string): Promise<any[]> {
+    const [year, month, day] = date.split('-').map(Number);
+    const startDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+    const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+    const vehicle = await this.vehicleRepository.findOneBy({ id });
+    if (!vehicle) {
+        throw new NotFoundException(`Vehicle with ID ${id} not found`);
+    }
+
+    const results = await this.passengerRepository.find({
+        where: {
+        bus_id: vehicle,
+        timestamp: Between(startDate, endDate),
+        },
+    });
+
+    if (!results || results.length === 0) {
+        throw new NotFoundException(
+        `No passenger counters found for vehicle ID ${id} on ${date}`,
+        );
+    }
+
+    // Convertir timestamp a hora local (ejemplo: 'America/Lima' o tu zona horaria)
+    return results.map((r) => ({
+        ...r,
+        timestamp: moment(r.timestamp).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
+    }));
+    }
+
 
     async findOne(id: number): Promise<Vehicle> {
         const result = await this.vehicleRepository.findOneBy({ register: id });
         if (!result) {
-            throw new NotFoundException(`Itinerary with ID ${id} not found`);
+            throw new NotFoundException(`Vehicle with ID ${id} not found`);
         }
         return result;
     }
