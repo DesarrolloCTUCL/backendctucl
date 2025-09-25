@@ -21,7 +21,7 @@ export class UpdateItineraryDto {
   km_traveled: number;
   @IsNumberString()
   @IsNotEmpty()
-  shift_id : string;
+  shift_id: number;
 
   // Puedes agregar más si deseas
 }

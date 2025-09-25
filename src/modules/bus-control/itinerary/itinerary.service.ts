@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import { Itinerary } from './../../../database/entities/itinerary.entity';
 import { UpdateItineraryDto } from './dto/update-itinerary.dto';
 import { BulkUpdateItineraryDto, UpdateItineraryWithCodeDto } from './dto/update-itinerary-excel.dto';
+import axios from 'axios';
 
 @Injectable()
 export class ItineraryService {
@@ -40,7 +41,7 @@ export class ItineraryService {
         end_time: updateDto.end_time,
         route: updateDto.route,
         km_traveled: updateDto.km_traveled ? Number(updateDto.km_traveled) : 0,
-        shift_id: Number(updateDto.shift_id),
+        shift_id: Number(updateDto.shift_id), // ✅ aseguramos número
         effective_date: new Date(),
         is_active: true,
         id: undefined,
@@ -90,7 +91,7 @@ export class ItineraryService {
             end_time: dto.end_time,
             route: dto.route,
             km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
-            shift_id: Number(dto.shift_id),
+            shift_id: Number(dto.shift_id), // ✅ forzamos que siempre sea número
             itinerary: itineraryCode,
             effective_date: new Date(),
             is_active: true,
@@ -120,7 +121,7 @@ export class ItineraryService {
     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
 
     const required = [
-      'idItinerarios',
+      'IdItinerario',
       'Recorrido',
       'Hora despacho',
       'Hora fin',
@@ -136,22 +137,48 @@ export class ItineraryService {
       );
     }
 
-    // Mapear columnas Excel -> DTO
-    const toDto = (r: any): UpdateItineraryWithCodeDto => ({
-      code: String(r['idItinerarios']).trim(),
-      start_time: String(r['Hora despacho']).trim(),
-      end_time: String(r['Hora fin']).trim(),
-      route: String(r['Recorrido']).trim(),
-      km_traveled: r['Km recorridos']
-        ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
-        : 0,
-      shift_id: String(r['turno']).trim(),
-      itinerary: String(r['Itinerario']).trim(), // 🔑 clave para agrupar y resetear
-    });
+    // 🔹 Tipamos la respuesta del endpoint shift
+    interface Shift {
+      id: number;
+      shiftcode: string;
+      route: string;
+      chainpc: string;
+      times: string;
+      created_at: string;
+      updated_at: string;
+    }
 
-    const itineraries = rows
-      .map(toDto)
-      .filter((r) => r.code);
+    const shiftsResp = await axios.get<{ status: string; message: string; data: Shift[] }>(
+      'https://ctucloja.com/api/shift',
+    );
+    const shifts: Shift[] = shiftsResp.data.data;
+
+    // 🔹 Crear diccionario shiftcode -> id
+    const shiftMap = new Map(shifts.map((s) => [s.shiftcode.trim(), s.id]));
+
+    // Mapear columnas Excel -> DTO
+    const toDto = (r: any): UpdateItineraryWithCodeDto => {
+      const shiftcode = String(r['turno']).trim();
+      const shiftId = shiftMap.get(shiftcode);
+
+      if (!shiftId) {
+        throw new BadRequestException(`Turno no encontrado: ${shiftcode}`);
+      }
+
+      return {
+        code: String(r['IdItinerario']).trim(),
+        start_time: String(r['Hora despacho']).trim(),
+        end_time: String(r['Hora fin']).trim(),
+        route: String(r['Recorrido']).trim(),
+        km_traveled: r['Km recorridos']
+          ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
+          : 0,
+        shift_id: Number(shiftId), // ✅ garantizamos número
+        itinerary: String(r['Itinerario']).trim(),
+      };
+    };
+
+    const itineraries = rows.map(toDto).filter((r) => r.code);
 
     // Llamamos a bulkUpdate con reset incluido
     return this.bulkUpdate({ itineraries });
