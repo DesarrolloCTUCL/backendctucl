@@ -99,6 +99,7 @@ export class ItineraryService {
             route: dto.route,
             km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
             shift_id: Number(dto.shift_id),
+            itinerary: dto.itinerary.trim(), 
             effective_date: new Date(),
             is_active: true,
           });
