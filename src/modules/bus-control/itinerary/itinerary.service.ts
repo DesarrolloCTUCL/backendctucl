@@ -118,8 +118,10 @@ export class ItineraryService {
     if (!sheetName) throw new BadRequestException('El Excel no tiene hojas');
 
     const sheet = workbook.Sheets[sheetName];
-    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
+    rows.forEach((r, i) => {
+      this.logger.log(`Fila ${i + 1} - IdItinerario crudo: "${r['IdItinerario']}"`);
+    });
     const required = [
       'IdItinerario',
       'Recorrido',
