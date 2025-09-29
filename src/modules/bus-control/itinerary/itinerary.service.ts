@@ -23,17 +23,17 @@ export class ItineraryService {
   }
 
   async findOne(code: string): Promise<Itinerary> {
-    const result = await this.itineraryRepository.findOne({ where: { code: code.trim(), is_active: true } });
+    const result = await this.itineraryRepository.findOne({ where: { code, is_active: true } });
     if (!result) throw new NotFoundException(`Itinerary with code ${code} not found`);
     return result;
   }
 
   async update(code: string, updateDto: UpdateItineraryDto): Promise<Itinerary> {
     try {
-      const oldItinerary = await this.itineraryRepository.findOneBy({ code: code.trim(), is_active: true });
+      const oldItinerary = await this.itineraryRepository.findOneBy({ code, is_active: true });
       if (!oldItinerary) throw new NotFoundException(`Itinerary with code ${code} not found`);
 
-      await this.itineraryRepository.update({ code: code.trim(), is_active: true }, { is_active: false });
+      await this.itineraryRepository.update({ code, is_active: true }, { is_active: false });
 
       const newItinerary = this.itineraryRepository.create({
         ...oldItinerary,
@@ -41,7 +41,7 @@ export class ItineraryService {
         end_time: updateDto.end_time,
         route: updateDto.route,
         km_traveled: updateDto.km_traveled ? Number(updateDto.km_traveled) : 0,
-        shift_id: Number(updateDto.shift_id),
+        shift_id: Number(updateDto.shift_id), // ✅ aseguramos número
         effective_date: new Date(),
         is_active: true,
         id: undefined,
@@ -56,140 +56,165 @@ export class ItineraryService {
     }
   }
 
-  async bulkUpdate(
-    bulkDto: BulkUpdateItineraryDto,
-    type: 'H'|'FH'|'FD'|'V'
-  ): Promise<{ updated: number; items: Itinerary[] }> {
-    if (!bulkDto?.itineraries?.length) {
-      throw new BadRequestException('No se recibieron itinerarios para actualizar');
-    }
-  
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-  
-    try {
-      const repo = qr.manager.getRepository(Itinerary);
-      const results: Itinerary[] = [];
-  
-      this.logger.log(`📌 Total itinerarios a procesar: ${bulkDto.itineraries.length}`);
-  
-      // Agrupar itinerarios por línea (ej: 222L1 -> L1)
-      const byLine = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
-        const match = dto.code.match(/[A-Z]+\d+$/i);
-        if (!match) throw new BadRequestException(`Código inválido: ${dto.code}`);
-        const lineKey = match[0].toUpperCase(); // extraemos la línea
-        if (!acc[lineKey]) acc[lineKey] = [];
-        acc[lineKey].push(dto);
-        return acc;
-      }, {});
-  
-      for (const [line, dtos] of Object.entries(byLine)) {
-        this.logger.log(`📌 Procesando línea: ${line} - códigos: ${dtos.map(d => d.code).join(', ')}`);
-  
-        // 🔹 Desactivar todos los itinerarios activos de esa línea y tipo (Itinerary empieza con la letra de tipo)
-        const deactivateResult = await repo.createQueryBuilder()
-          .update(Itinerary)
-          .set({ is_active: false })
-          .where("code LIKE :linePattern AND itinerary LIKE :typePattern AND is_active = true", {
-            linePattern: `%${line}`,  // todos los códigos de la línea
-            typePattern: `${type}%`   // solo itinerarios que empiecen con la letra del tipo
-          })
-          .execute();
-  
-        this.logger.log(`🔹 Itinerarios desactivados: ${deactivateResult.affected || 0}`);
-  
-        // Insertar nuevos itinerarios
-        for (const dto of dtos) {
-          const exists = await repo.findOne({
-            where: { code: dto.code.trim(), is_active: true }
-          });
-          if (exists) {
-            this.logger.warn(`⚠️ Código ya activo, se omite inserción: ${dto.code.trim()}`);
-            continue;
-          }
-  
+// ---------- MASIVO (RESET POR GRUPO) CON LOGS ----------
+async bulkUpdate(bulkDto: BulkUpdateItineraryDto): Promise<{ updated: number; items: Itinerary[] }> {
+  if (!bulkDto?.itineraries?.length) {
+    throw new BadRequestException('No se recibieron itinerarios para actualizar');
+  }
+
+  const qr = this.dataSource.createQueryRunner();
+  await qr.connect();
+  await qr.startTransaction();
+
+  try {
+    const repo = qr.manager.getRepository(Itinerary);
+    const results: Itinerary[] = [];
+
+    // 🔹 Agrupar itinerarios por "Itinerario"
+    const byGroup = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
+      const groupKey = dto.itinerary;
+      if (!acc[groupKey]) acc[groupKey] = [];
+      acc[groupKey].push(dto);
+      return acc;
+    }, {});
+
+    for (const [itineraryCode, dtos] of Object.entries(byGroup)) {
+      this.logger.log(`Desactivando itinerarios activos para el grupo: ${itineraryCode}`);
+
+      // Desactivar todos los anteriores de este itinerario
+      const updateResult = await repo.update({ itinerary: itineraryCode, is_active: true }, { is_active: false });
+      this.logger.log(`Filas desactivadas: ${updateResult.affected}`);
+
+      // Insertar los nuevos
+      for (const dto of dtos) {
+        try {
           const newItinerary = repo.create({
-            code: dto.code.trim(),
+            code: dto.code,
             start_time: dto.start_time,
             end_time: dto.end_time,
             route: dto.route,
             km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
             shift_id: Number(dto.shift_id),
-            itinerary: dto.itinerary.trim(),
+            itinerary: itineraryCode,
             effective_date: new Date(),
             is_active: true,
           });
-  
-          results.push(await repo.save(newItinerary));
-          this.logger.log(`✅ Itinerario insertado: ${dto.code.trim()}`);
+
+          const saved = await repo.save(newItinerary);
+          results.push(saved);
+          this.logger.log(`Itinerario insertado: ${saved.code} (${itineraryCode})`);
+        } catch (err: any) {
+          if (err.code === '23505') { // Postgres duplicate key
+            this.logger.error(`❌ Error de duplicación para code ${dto.code}: ${err.detail}`);
+          } else {
+            this.logger.error(`❌ Error insertando itinerario ${dto.code}: ${err.message}`);
+          }
+          throw err; // opcional: si quieres que la transacción falle
         }
       }
-  
-      await qr.commitTransaction();
-      this.logger.log(`🎯 Total itinerarios actualizados/insertados: ${results.length}`);
-      return { updated: results.length, items: results };
-  
-    } catch (error) {
-      await qr.rollbackTransaction();
-      this.logger.error(`❌ Error en bulkUpdate: ${error.message}`, error.stack);
-      throw new InternalServerErrorException(`Error en actualización masiva: ${error.message}`);
-    } finally {
-      await qr.release();
     }
+
+    await qr.commitTransaction();
+    this.logger.log(`✅ Bulk update completado: ${results.length} itinerarios actualizados`);
+    return { updated: results.length, items: results };
+  } catch (error) {
+    await qr.rollbackTransaction();
+    this.logger.error(`❌ Error en bulkUpdate: ${error.message}`, error.stack);
+    throw new InternalServerErrorException(`Error en actualización masiva: ${error.message}`);
+  } finally {
+    await qr.release();
   }
-  
-  
-  
-  
+}
+
 
   // ---------- IMPORTAR DESDE EXCEL ----------
-  async importFromExcel(
-    buffer: Buffer,
-    type: 'H' | 'FH' | 'FD' | 'V', // ← nuevo argumento
-  ): Promise<{ updated: number; items: Itinerary[] }> {
+  async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinerary[] }> {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     if (!sheetName) throw new BadRequestException('El Excel no tiene hojas');
-  
+
     const sheet = workbook.Sheets[sheetName];
-    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
-  
-    const itineraries = rows.map((r: any) => ({
-      code: String(r['IdItinerario']).trim(),
-      start_time: String(r['Hora despacho']).trim(),
-      end_time: String(r['Hora fin']).trim(),
-      route: String(r['Recorrido']).trim(),
-      km_traveled: r['Km recorridos'] ? Number(String(r['Km recorridos']).replace(' KM','').trim()) : 0,
-      shift_id: 0, // aquí tu lógica de shift_id
-      itinerary: String(r['Itinerario']).trim(),
-    })).filter(r => r.code);
-  
-    return this.bulkUpdate({ itineraries }, type); // ✅ pasamos ambos argumentos
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+
+    const required = [
+      'IdItinerario',
+      'Recorrido',
+      'Hora despacho',
+      'Hora fin',
+      'Itinerario',
+      'Km recorridos',
+      'turno',
+    ];
+
+    const missingCols = required.filter((c) => !Object.keys(rows[0] || {}).includes(c));
+    if (missingCols.length) {
+      throw new BadRequestException(
+        `Faltan columnas obligatorias en Excel: ${missingCols.join(', ')}`
+      );
+    }
+
+    // 🔹 Tipamos la respuesta del endpoint shift
+    interface Shift {
+      id: number;
+      shiftcode: string;
+      route: string;
+      chainpc: string;
+      times: string;
+      created_at: string;
+      updated_at: string;
+    }
+
+    const shiftsResp = await axios.get<{ status: string; message: string; data: Shift[] }>(
+      'https://ctucloja.com/api/shift',
+    );
+    const shifts: Shift[] = shiftsResp.data.data;
+
+    // 🔹 Crear diccionario shiftcode -> id
+    const shiftMap = new Map(shifts.map((s) => [s.shiftcode.trim(), s.id]));
+
+    // Mapear columnas Excel -> DTO
+    const toDto = (r: any): UpdateItineraryWithCodeDto => {
+      const shiftcode = String(r['turno']).trim();
+      const shiftId = shiftMap.get(shiftcode);
+
+      if (!shiftId) {
+        throw new BadRequestException(`Turno no encontrado: ${shiftcode}`);
+      }
+
+      return {
+        code: String(r['IdItinerario']).trim(),
+        start_time: String(r['Hora despacho']).trim(),
+        end_time: String(r['Hora fin']).trim(),
+        route: String(r['Recorrido']).trim(),
+        km_traveled: r['Km recorridos']
+          ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
+          : 0,
+        shift_id: Number(shiftId), // ✅ garantizamos número
+        itinerary: String(r['Itinerario']).trim(),
+      };
+    };
+
+    const itineraries = rows.map(toDto).filter((r) => r.code);
+
+    // Llamamos a bulkUpdate con reset incluido
+    return this.bulkUpdate({ itineraries });
   }
-  
 
   // ---------- AGRUPAR POR LINEA ----------
   async findByLine(line: string): Promise<Record<string, Itinerary[]>> {
     const allItineraries = await this.itineraryRepository.find({ where: { is_active: true } });
-
-    // Filtrar por código que termine exactamente con el sufijo
-    const filtered = allItineraries.filter((it) => it.code.endsWith(line.trim()));
+    const filtered = allItineraries.filter((it) => it.code.endsWith(line));
     const grouped: Record<string, Itinerary[]> = {};
 
     for (const item of filtered) {
-      const groupKey = item.itinerary.trim();
+      const groupKey = item.itinerary;
       if (!grouped[groupKey]) grouped[groupKey] = [];
       grouped[groupKey].push(item);
     }
 
     for (const key in grouped) {
       grouped[key] = grouped[key].sort((a, b) => {
-        // Extraer número al inicio del código, antes de la letra L
-        const getNumber = (code: string) => {
-          const match = code.match(/^(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        };
+        const getNumber = (code: string) => parseInt(code.replace(line, '').trim(), 10);
         return getNumber(a.code) - getNumber(b.code);
       });
     }
