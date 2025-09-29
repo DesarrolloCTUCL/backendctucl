@@ -99,6 +99,7 @@ export class ItineraryService {
             shift_id: Number(dto.shift_id),
             effective_date: new Date(),
             is_active: true,
+            itinerary: dto.itinerary.trim(), // 🔹 Asegurarse de asignar
           });
           results.push(await repo.save(newItinerary));
         }
