@@ -73,28 +73,27 @@ export class ItineraryService {
       const results: Itinerary[] = [];
   
       this.logger.log(`📌 Total itinerarios a procesar: ${bulkDto.itineraries.length}`);
-      
-      // Agrupar itinerarios por línea
+  
+      // Agrupar itinerarios por línea (ej: 222L1 -> L1)
       const byLine = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
         const match = dto.code.match(/[A-Z]+\d+$/i);
         if (!match) throw new BadRequestException(`Código inválido: ${dto.code}`);
-        const lineKey = match[0].toUpperCase();
+        const lineKey = match[0].toUpperCase(); // extraemos la línea
         if (!acc[lineKey]) acc[lineKey] = [];
         acc[lineKey].push(dto);
         return acc;
       }, {});
   
       for (const [line, dtos] of Object.entries(byLine)) {
-        const codesToInsert = dtos.map(d => d.code.trim());
-        this.logger.log(`📌 Procesando línea: ${line} - códigos: ${codesToInsert.join(', ')}`);
+        this.logger.log(`📌 Procesando línea: ${line} - códigos: ${dtos.map(d => d.code).join(', ')}`);
   
-        // Desactivar itinerarios existentes del mismo tipo
+        // 🔹 Desactivar todos los itinerarios activos de esa línea y tipo (Itinerary empieza con la letra de tipo)
         const deactivateResult = await repo.createQueryBuilder()
           .update(Itinerary)
           .set({ is_active: false })
-          .where("code IN (:...codes) AND code LIKE :typePattern AND is_active = true", {
-            codes: codesToInsert,
-            typePattern: `${type}%`
+          .where("code LIKE :linePattern AND itinerary LIKE :typePattern AND is_active = true", {
+            linePattern: `%${line}`,  // todos los códigos de la línea
+            typePattern: `${type}%`   // solo itinerarios que empiecen con la letra del tipo
           })
           .execute();
   
@@ -102,8 +101,9 @@ export class ItineraryService {
   
         // Insertar nuevos itinerarios
         for (const dto of dtos) {
-          // ⚠️ Verificar si ya existe un registro activo con este código
-          const exists = await repo.findOne({ where: { code: dto.code.trim(), is_active: true } });
+          const exists = await repo.findOne({
+            where: { code: dto.code.trim(), is_active: true }
+          });
           if (exists) {
             this.logger.warn(`⚠️ Código ya activo, se omite inserción: ${dto.code.trim()}`);
             continue;
@@ -129,6 +129,7 @@ export class ItineraryService {
       await qr.commitTransaction();
       this.logger.log(`🎯 Total itinerarios actualizados/insertados: ${results.length}`);
       return { updated: results.length, items: results };
+  
     } catch (error) {
       await qr.rollbackTransaction();
       this.logger.error(`❌ Error en bulkUpdate: ${error.message}`, error.stack);
