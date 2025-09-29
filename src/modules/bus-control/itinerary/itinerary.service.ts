@@ -78,28 +78,34 @@ export class ItineraryService {
         return acc;
       }, {});
 
-      // 🔹 Procesar cada grupo
-      for (const [itineraryCode, dtos] of Object.entries(byGroup)) {
-        const cleanCode = itineraryCode.trim();
-        // Desactivar todos los anteriores de este itinerario
-        await repo.update({ itinerary: cleanCode, is_active: true }, { is_active: false });
+// 🔹 Procesar cada grupo
+for (const [itineraryCode, dtos] of Object.entries(byGroup)) {
+  const cleanCode = itineraryCode.trim();
 
-        // Insertar los nuevos
-        for (const dto of dtos) {
-          const newItinerary = repo.create({
-            code: dto.code.trim(),
-            start_time: dto.start_time,
-            end_time: dto.end_time,
-            route: dto.route,
-            km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
-            shift_id: Number(dto.shift_id),
-            itinerary: cleanCode,
-            effective_date: new Date(),
-            is_active: true,
-          });
-          results.push(await repo.save(newItinerary));
-        }
-      }
+  // ✅ Desactivar todos los códigos activos que terminen con este itinerario
+  await repo.createQueryBuilder()
+    .update(Itinerary)
+    .set({ is_active: false })
+    .where("itinerary = :itinerary AND is_active = true", { itinerary: cleanCode })
+    .execute();
+
+  // Insertar los nuevos
+  for (const dto of dtos) {
+    const newItinerary = repo.create({
+      code: dto.code.trim(),
+      start_time: dto.start_time,
+      end_time: dto.end_time,
+      route: dto.route,
+      km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
+      shift_id: Number(dto.shift_id),
+      itinerary: cleanCode,
+      effective_date: new Date(),
+      is_active: true,
+    });
+    results.push(await repo.save(newItinerary));
+  }
+}
+
 
       await qr.commitTransaction();
       return { updated: results.length, items: results };
