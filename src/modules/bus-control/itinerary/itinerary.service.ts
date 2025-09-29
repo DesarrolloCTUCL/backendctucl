@@ -72,9 +72,11 @@ export class ItineraryService {
       const repo = qr.manager.getRepository(Itinerary);
       const results: Itinerary[] = [];
   
-      // 🔹 Agrupar itinerarios por línea (ej: 1L10 -> L10)
+      this.logger.log(`📌 Total itinerarios a procesar: ${bulkDto.itineraries.length}`);
+      
+      // Agrupar itinerarios por línea
       const byLine = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
-        const match = dto.code.match(/[A-Z]+\d+$/i); // extrae la parte "L10"
+        const match = dto.code.match(/[A-Z]+\d+$/i);
         if (!match) throw new BadRequestException(`Código inválido: ${dto.code}`);
         const lineKey = match[0].toUpperCase();
         if (!acc[lineKey]) acc[lineKey] = [];
@@ -84,9 +86,10 @@ export class ItineraryService {
   
       for (const [line, dtos] of Object.entries(byLine)) {
         const codesToInsert = dtos.map(d => d.code.trim());
+        this.logger.log(`📌 Procesando línea: ${line} - códigos: ${codesToInsert.join(', ')}`);
   
-        // ✅ Desactivar solo los códigos exactos que se van a insertar y que sean del tipo correcto
-        await repo.createQueryBuilder()
+        // Desactivar itinerarios existentes del mismo tipo
+        const deactivateResult = await repo.createQueryBuilder()
           .update(Itinerary)
           .set({ is_active: false })
           .where("code IN (:...codes) AND code LIKE :typePattern AND is_active = true", {
@@ -95,8 +98,17 @@ export class ItineraryService {
           })
           .execute();
   
-        // Insertar los nuevos
+        this.logger.log(`🔹 Itinerarios desactivados: ${deactivateResult.affected || 0}`);
+  
+        // Insertar nuevos itinerarios
         for (const dto of dtos) {
+          // ⚠️ Verificar si ya existe un registro activo con este código
+          const exists = await repo.findOne({ where: { code: dto.code.trim(), is_active: true } });
+          if (exists) {
+            this.logger.warn(`⚠️ Código ya activo, se omite inserción: ${dto.code.trim()}`);
+            continue;
+          }
+  
           const newItinerary = repo.create({
             code: dto.code.trim(),
             start_time: dto.start_time,
@@ -108,11 +120,14 @@ export class ItineraryService {
             effective_date: new Date(),
             is_active: true,
           });
+  
           results.push(await repo.save(newItinerary));
+          this.logger.log(`✅ Itinerario insertado: ${dto.code.trim()}`);
         }
       }
   
       await qr.commitTransaction();
+      this.logger.log(`🎯 Total itinerarios actualizados/insertados: ${results.length}`);
       return { updated: results.length, items: results };
     } catch (error) {
       await qr.rollbackTransaction();
@@ -122,6 +137,7 @@ export class ItineraryService {
       await qr.release();
     }
   }
+  
   
   
   
