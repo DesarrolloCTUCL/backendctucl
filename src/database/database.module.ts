@@ -18,6 +18,7 @@ import { Log_gps } from './entities/log-gps.entity';
 import { PassengerCounter } from './entities/passenger-counter.entity';
 import { TrackGps } from './entities/trackgps.entity';
 import { ControlStrip } from './entities/control-strip.entity';
+import { Transaction } from './entities/transaction.entity';
 
 @Module({
   imports: [
@@ -36,19 +37,20 @@ import { ControlStrip } from './entities/control-strip.entity';
           BusLine,
           BusLineStations,
           BusStation,
-          Recharge_point,
           Company,
+          ControlStrip,
           Device,
           Itinerary,
+          Log_gps,
           MqttCommandHistory,
+          PassengerCounter,
+          Recharge_point,
           Schedule,
+          Shift,
+          TrackGps,
+          Transaction,
           User,
           Vehicle,
-          Shift,
-          Log_gps,
-          PassengerCounter,
-          TrackGps,
-          ControlStrip
         ],
         synchronize: false,
         ssl: process.env.DB_SSL === 'true'
