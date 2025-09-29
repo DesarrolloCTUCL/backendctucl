@@ -56,57 +56,54 @@ export class ItineraryService {
     }
   }
 
-  // ---------- MASIVO (RESET POR GRUPO) ----------
   async bulkUpdate(bulkDto: BulkUpdateItineraryDto): Promise<{ updated: number; items: Itinerary[] }> {
     if (!bulkDto?.itineraries?.length) {
       throw new BadRequestException('No se recibieron itinerarios para actualizar');
     }
-
+  
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
-
+  
     try {
       const repo = qr.manager.getRepository(Itinerary);
       const results: Itinerary[] = [];
-
-      // 🔹 Agrupar itinerarios por "Itinerario" (ej: L1, L10, etc.) con trim
-      const byGroup = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
-        const groupKey = dto.itinerary.trim(); 
-        if (!acc[groupKey]) acc[groupKey] = [];
-        acc[groupKey].push(dto);
+  
+      // 🔹 Agrupar itinerarios por línea extraída de code (ej: 1L10 -> L10)
+      const byLine = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
+        const match = dto.code.match(/[A-Z]+\d+$/i); // extrae la parte "L10"
+        if (!match) throw new BadRequestException(`Código inválido: ${dto.code}`);
+        const lineKey = match[0].toUpperCase(); 
+        if (!acc[lineKey]) acc[lineKey] = [];
+        acc[lineKey].push(dto);
         return acc;
       }, {});
-
-// 🔹 Procesar cada grupo
-for (const [itineraryCode, dtos] of Object.entries(byGroup)) {
-  const cleanCode = itineraryCode.trim();
-
-  // ✅ Desactivar todos los códigos activos que terminen con este itinerario
-  await repo.createQueryBuilder()
-    .update(Itinerary)
-    .set({ is_active: false })
-    .where("itinerary = :itinerary AND is_active = true", { itinerary: cleanCode })
-    .execute();
-
-  // Insertar los nuevos
-  for (const dto of dtos) {
-    const newItinerary = repo.create({
-      code: dto.code.trim(),
-      start_time: dto.start_time,
-      end_time: dto.end_time,
-      route: dto.route,
-      km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
-      shift_id: Number(dto.shift_id),
-      itinerary: cleanCode,
-      effective_date: new Date(),
-      is_active: true,
-    });
-    results.push(await repo.save(newItinerary));
-  }
-}
-
-
+  
+      // 🔹 Procesar cada línea
+      for (const [line, dtos] of Object.entries(byLine)) {
+        // ✅ Desactivar todos los códigos activos que terminen con esta línea
+        await repo.createQueryBuilder()
+          .update(Itinerary)
+          .set({ is_active: false })
+          .where("code LIKE :pattern AND is_active = true", { pattern: `%${line}` })
+          .execute();
+  
+        // Insertar los nuevos
+        for (const dto of dtos) {
+          const newItinerary = repo.create({
+            code: dto.code.trim(),
+            start_time: dto.start_time,
+            end_time: dto.end_time,
+            route: dto.route,
+            km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
+            shift_id: Number(dto.shift_id),
+            effective_date: new Date(),
+            is_active: true,
+          });
+          results.push(await repo.save(newItinerary));
+        }
+      }
+  
       await qr.commitTransaction();
       return { updated: results.length, items: results };
     } catch (error) {
@@ -117,6 +114,7 @@ for (const [itineraryCode, dtos] of Object.entries(byGroup)) {
       await qr.release();
     }
   }
+  
 
   // ---------- IMPORTAR DESDE EXCEL ----------
   async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinerary[] }> {
