@@ -56,7 +56,10 @@ export class ItineraryService {
     }
   }
 
-  async bulkUpdate(bulkDto: BulkUpdateItineraryDto, type: 'H'|'FH'|'FD'|'V'): Promise<{ updated: number; items: Itinerary[] }> {
+  async bulkUpdate(
+    bulkDto: BulkUpdateItineraryDto,
+    type: 'H'|'FH'|'FD'|'V'
+  ): Promise<{ updated: number; items: Itinerary[] }> {
     if (!bulkDto?.itineraries?.length) {
       throw new BadRequestException('No se recibieron itinerarios para actualizar');
     }
@@ -69,7 +72,7 @@ export class ItineraryService {
       const repo = qr.manager.getRepository(Itinerary);
       const results: Itinerary[] = [];
   
-      // 🔹 Agrupar itinerarios por línea extraída de code (ej: 1L10 -> L10)
+      // 🔹 Agrupar itinerarios por línea (ej: 1L10 -> L10)
       const byLine = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
         const match = dto.code.match(/[A-Z]+\d+$/i); // extrae la parte "L10"
         if (!match) throw new BadRequestException(`Código inválido: ${dto.code}`);
@@ -80,13 +83,15 @@ export class ItineraryService {
       }, {});
   
       for (const [line, dtos] of Object.entries(byLine)) {
-        // ✅ Desactivar solo los itinerarios activos de ese tipo (H, FH, FD, V)
+        const codesToInsert = dtos.map(d => d.code.trim());
+  
+        // ✅ Desactivar solo los códigos exactos que se van a insertar y que sean del tipo correcto
         await repo.createQueryBuilder()
           .update(Itinerary)
           .set({ is_active: false })
-          .where("code LIKE :pattern AND code LIKE :typePattern AND is_active = true", { 
-            pattern: `%${line}`, 
-            typePattern: `${type}%` // solo desactiva los que empiecen con la letra del tipo
+          .where("code IN (:...codes) AND code LIKE :typePattern AND is_active = true", {
+            codes: codesToInsert,
+            typePattern: `${type}%`
           })
           .execute();
   
@@ -99,7 +104,7 @@ export class ItineraryService {
             route: dto.route,
             km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
             shift_id: Number(dto.shift_id),
-            itinerary: dto.itinerary.trim(), 
+            itinerary: dto.itinerary.trim(),
             effective_date: new Date(),
             is_active: true,
           });
@@ -117,6 +122,7 @@ export class ItineraryService {
       await qr.release();
     }
   }
+  
   
   
 
