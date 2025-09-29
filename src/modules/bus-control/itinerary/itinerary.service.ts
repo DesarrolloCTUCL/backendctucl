@@ -56,7 +56,7 @@ export class ItineraryService {
     }
   }
 
-  async bulkUpdate(bulkDto: BulkUpdateItineraryDto): Promise<{ updated: number; items: Itinerary[] }> {
+  async bulkUpdate(bulkDto: BulkUpdateItineraryDto, type: 'H'|'FH'|'FD'|'V'): Promise<{ updated: number; items: Itinerary[] }> {
     if (!bulkDto?.itineraries?.length) {
       throw new BadRequestException('No se recibieron itinerarios para actualizar');
     }
@@ -73,19 +73,21 @@ export class ItineraryService {
       const byLine = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
         const match = dto.code.match(/[A-Z]+\d+$/i); // extrae la parte "L10"
         if (!match) throw new BadRequestException(`Código inválido: ${dto.code}`);
-        const lineKey = match[0].toUpperCase(); 
+        const lineKey = match[0].toUpperCase();
         if (!acc[lineKey]) acc[lineKey] = [];
         acc[lineKey].push(dto);
         return acc;
       }, {});
   
-      // 🔹 Procesar cada línea
       for (const [line, dtos] of Object.entries(byLine)) {
-        // ✅ Desactivar todos los códigos activos que terminen con esta línea
+        // ✅ Desactivar solo los itinerarios activos de ese tipo (H, FH, FD, V)
         await repo.createQueryBuilder()
           .update(Itinerary)
           .set({ is_active: false })
-          .where("code LIKE :pattern AND is_active = true", { pattern: `%${line}` })
+          .where("code LIKE :pattern AND code LIKE :typePattern AND is_active = true", { 
+            pattern: `%${line}`, 
+            typePattern: `${type}%` // solo desactiva los que empiecen con la letra del tipo
+          })
           .execute();
   
         // Insertar los nuevos
@@ -99,7 +101,6 @@ export class ItineraryService {
             shift_id: Number(dto.shift_id),
             effective_date: new Date(),
             is_active: true,
-            itinerary: dto.itinerary.trim(), // 🔹 Asegurarse de asignar
           });
           results.push(await repo.save(newItinerary));
         }
@@ -116,82 +117,33 @@ export class ItineraryService {
     }
   }
   
+  
 
   // ---------- IMPORTAR DESDE EXCEL ----------
-  async importFromExcel(buffer: Buffer): Promise<{ updated: number; items: Itinerary[] }> {
+  async importFromExcel(
+    buffer: Buffer,
+    type: 'H' | 'FH' | 'FD' | 'V', // ← nuevo argumento
+  ): Promise<{ updated: number; items: Itinerary[] }> {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     if (!sheetName) throw new BadRequestException('El Excel no tiene hojas');
-
+  
     const sheet = workbook.Sheets[sheetName];
     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
-
-    // Log de depuración para detectar posibles problemas con el código
-    rows.forEach((r, i) => {
-      this.logger.log(`Fila ${i + 1} - IdItinerario crudo: "${r['IdItinerario']}"`);
-    });
-
-    const required = [
-      'IdItinerario',
-      'Recorrido',
-      'Hora despacho',
-      'Hora fin',
-      'Itinerario',
-      'Km recorridos',
-      'turno',
-    ];
-
-    const missingCols = required.filter((c) => !Object.keys(rows[0] || {}).includes(c));
-    if (missingCols.length) {
-      throw new BadRequestException(`Faltan columnas obligatorias en Excel: ${missingCols.join(', ')}`);
-    }
-
-    // 🔹 Tipamos la respuesta del endpoint shift
-    interface Shift {
-      id: number;
-      shiftcode: string;
-      route: string;
-      chainpc: string;
-      times: string;
-      created_at: string;
-      updated_at: string;
-    }
-
-    const shiftsResp = await axios.get<{ status: string; message: string; data: Shift[] }>(
-      'https://ctucloja.com/api/shift',
-    );
-    const shifts: Shift[] = shiftsResp.data.data;
-
-    // 🔹 Crear diccionario shiftcode -> id
-    const shiftMap = new Map(shifts.map((s) => [s.shiftcode.trim(), s.id]));
-
-    // Mapear columnas Excel -> DTO
-    const toDto = (r: any): UpdateItineraryWithCodeDto => {
-      const shiftcode = String(r['turno']).trim();
-      const shiftId = shiftMap.get(shiftcode);
-
-      if (!shiftId) {
-        throw new BadRequestException(`Turno no encontrado: ${shiftcode}`);
-      }
-
-      return {
-        code: String(r['IdItinerario']).trim(),
-        start_time: String(r['Hora despacho']).trim(),
-        end_time: String(r['Hora fin']).trim(),
-        route: String(r['Recorrido']).trim(),
-        km_traveled: r['Km recorridos']
-          ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
-          : 0,
-        shift_id: Number(shiftId),
-        itinerary: String(r['Itinerario']).trim(),
-      };
-    };
-
-    const itineraries = rows.map(toDto).filter((r) => r.code);
-
-    // Llamamos a bulkUpdate con reset incluido
-    return this.bulkUpdate({ itineraries });
+  
+    const itineraries = rows.map((r: any) => ({
+      code: String(r['IdItinerario']).trim(),
+      start_time: String(r['Hora despacho']).trim(),
+      end_time: String(r['Hora fin']).trim(),
+      route: String(r['Recorrido']).trim(),
+      km_traveled: r['Km recorridos'] ? Number(String(r['Km recorridos']).replace(' KM','').trim()) : 0,
+      shift_id: 0, // aquí tu lógica de shift_id
+      itinerary: String(r['Itinerario']).trim(),
+    })).filter(r => r.code);
+  
+    return this.bulkUpdate({ itineraries }, type); // ✅ pasamos ambos argumentos
   }
+  
 
   // ---------- AGRUPAR POR LINEA ----------
   async findByLine(line: string): Promise<Record<string, Itinerary[]>> {

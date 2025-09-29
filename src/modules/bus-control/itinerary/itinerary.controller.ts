@@ -41,24 +41,25 @@ export class ItineraryController {
     return this.itineraryService.findByLine(line);
   }
 
-  // ---------- NUEVOS ----------
-  /**
-   * Bulk update con JSON (útil para pruebas o frontend que procese Excel).
-   */
-  @Post('bulk-update')
-  bulkUpdate(@Body() bulkDto: BulkUpdateItineraryDto) {
-    return this.itineraryService.bulkUpdate(bulkDto);
-  }
+
 
   /**
    * Importación directa de Excel desde frontend (form-data con archivo).
    */
   @Post('import-excel')
   @UseInterceptors(FileInterceptor('file'))
-  importExcel(@UploadedFile() file: Express.Multer.File) {
+  importExcel(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('type') type: 'H' | 'FH' | 'FD' | 'V', // <- nuevo
+  ) {
     if (!file) {
       throw new Error('No se subió archivo');
     }
-    return this.itineraryService.importFromExcel(file.buffer);
+    if (!type) {
+      throw new Error('Debe especificar el tipo de itinerario: H, FH, FD, V');
+    }
+  
+    return this.itineraryService.importFromExcel(file.buffer, type);
   }
+  
 }
