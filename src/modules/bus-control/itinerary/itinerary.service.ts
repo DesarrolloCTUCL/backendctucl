@@ -23,17 +23,17 @@ export class ItineraryService {
   }
 
   async findOne(code: string): Promise<Itinerary> {
-    const result = await this.itineraryRepository.findOne({ where: { code, is_active: true } });
+    const result = await this.itineraryRepository.findOne({ where: { code: code.trim(), is_active: true } });
     if (!result) throw new NotFoundException(`Itinerary with code ${code} not found`);
     return result;
   }
 
   async update(code: string, updateDto: UpdateItineraryDto): Promise<Itinerary> {
     try {
-      const oldItinerary = await this.itineraryRepository.findOneBy({ code, is_active: true });
+      const oldItinerary = await this.itineraryRepository.findOneBy({ code: code.trim(), is_active: true });
       if (!oldItinerary) throw new NotFoundException(`Itinerary with code ${code} not found`);
 
-      await this.itineraryRepository.update({ code, is_active: true }, { is_active: false });
+      await this.itineraryRepository.update({ code: code.trim(), is_active: true }, { is_active: false });
 
       const newItinerary = this.itineraryRepository.create({
         ...oldItinerary,
@@ -41,7 +41,7 @@ export class ItineraryService {
         end_time: updateDto.end_time,
         route: updateDto.route,
         km_traveled: updateDto.km_traveled ? Number(updateDto.km_traveled) : 0,
-        shift_id: Number(updateDto.shift_id), // ✅ aseguramos número
+        shift_id: Number(updateDto.shift_id),
         effective_date: new Date(),
         is_active: true,
         id: undefined,
@@ -70,9 +70,9 @@ export class ItineraryService {
       const repo = qr.manager.getRepository(Itinerary);
       const results: Itinerary[] = [];
 
-      // 🔹 Agrupar itinerarios por "Itinerario" (ej: H501, H151, etc.)
+      // 🔹 Agrupar itinerarios por "Itinerario" (ej: L1, L10, etc.) con trim
       const byGroup = bulkDto.itineraries.reduce<Record<string, UpdateItineraryWithCodeDto[]>>((acc, dto) => {
-        const groupKey = dto.itinerary; 
+        const groupKey = dto.itinerary.trim(); 
         if (!acc[groupKey]) acc[groupKey] = [];
         acc[groupKey].push(dto);
         return acc;
@@ -80,19 +80,20 @@ export class ItineraryService {
 
       // 🔹 Procesar cada grupo
       for (const [itineraryCode, dtos] of Object.entries(byGroup)) {
+        const cleanCode = itineraryCode.trim();
         // Desactivar todos los anteriores de este itinerario
-        await repo.update({ itinerary: itineraryCode, is_active: true }, { is_active: false });
+        await repo.update({ itinerary: cleanCode, is_active: true }, { is_active: false });
 
         // Insertar los nuevos
         for (const dto of dtos) {
           const newItinerary = repo.create({
-            code: dto.code,
+            code: dto.code.trim(),
             start_time: dto.start_time,
             end_time: dto.end_time,
             route: dto.route,
             km_traveled: dto.km_traveled ? Number(dto.km_traveled) : 0,
-            shift_id: Number(dto.shift_id), // ✅ forzamos que siempre sea número
-            itinerary: itineraryCode,
+            shift_id: Number(dto.shift_id),
+            itinerary: cleanCode,
             effective_date: new Date(),
             is_active: true,
           });
@@ -119,9 +120,12 @@ export class ItineraryService {
 
     const sheet = workbook.Sheets[sheetName];
     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
+
+    // Log de depuración para detectar posibles problemas con el código
     rows.forEach((r, i) => {
       this.logger.log(`Fila ${i + 1} - IdItinerario crudo: "${r['IdItinerario']}"`);
     });
+
     const required = [
       'IdItinerario',
       'Recorrido',
@@ -134,9 +138,7 @@ export class ItineraryService {
 
     const missingCols = required.filter((c) => !Object.keys(rows[0] || {}).includes(c));
     if (missingCols.length) {
-      throw new BadRequestException(
-        `Faltan columnas obligatorias en Excel: ${missingCols.join(', ')}`
-      );
+      throw new BadRequestException(`Faltan columnas obligatorias en Excel: ${missingCols.join(', ')}`);
     }
 
     // 🔹 Tipamos la respuesta del endpoint shift
@@ -175,7 +177,7 @@ export class ItineraryService {
         km_traveled: r['Km recorridos']
           ? Number(String(r['Km recorridos']).replace(' KM', '').trim())
           : 0,
-        shift_id: Number(shiftId), // ✅ garantizamos número
+        shift_id: Number(shiftId),
         itinerary: String(r['Itinerario']).trim(),
       };
     };
@@ -189,18 +191,24 @@ export class ItineraryService {
   // ---------- AGRUPAR POR LINEA ----------
   async findByLine(line: string): Promise<Record<string, Itinerary[]>> {
     const allItineraries = await this.itineraryRepository.find({ where: { is_active: true } });
-    const filtered = allItineraries.filter((it) => it.code.endsWith(line));
+
+    // Filtrar por código que termine exactamente con el sufijo
+    const filtered = allItineraries.filter((it) => it.code.endsWith(line.trim()));
     const grouped: Record<string, Itinerary[]> = {};
 
     for (const item of filtered) {
-      const groupKey = item.itinerary;
+      const groupKey = item.itinerary.trim();
       if (!grouped[groupKey]) grouped[groupKey] = [];
       grouped[groupKey].push(item);
     }
 
     for (const key in grouped) {
       grouped[key] = grouped[key].sort((a, b) => {
-        const getNumber = (code: string) => parseInt(code.replace(line, '').trim(), 10);
+        // Extraer número al inicio del código, antes de la letra L
+        const getNumber = (code: string) => {
+          const match = code.match(/^(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
         return getNumber(a.code) - getNumber(b.code);
       });
     }
