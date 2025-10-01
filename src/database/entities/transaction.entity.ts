@@ -2,8 +2,11 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    CreateDateColumn
+    CreateDateColumn,
+    ManyToOne,
+    JoinColumn
   } from 'typeorm';
+import { Device } from './device.entity';
   
 
 @Entity('transactions')
@@ -43,4 +46,8 @@ export class Transaction {
 
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   longitude: number;
+
+  @ManyToOne(() => Device, { nullable: true })
+  @JoinColumn({ name: 'device_id' })
+  device?: Device;
 }
