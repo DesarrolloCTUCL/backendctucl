@@ -1,49 +1,54 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
+	Entity,
+	PrimaryGeneratedColumn,
+	Column,
+	CreateDateColumn,
+	UpdateDateColumn,
+	OneToMany,
 } from 'typeorm';
+import { Transaction } from './transaction.entity';
 
 export enum DeviceType {
-  MOBILE_POS = 'MOBILE_POS',
-  E60_POS = 'X60_POS',   // Validador morado
-  X600_POS = 'X600_POS', // Validador amarillo
+	MOBILE_POS = 'MOBILE_POS',
+	E60_POS = 'X60_POS',   // Validador morado
+	X600_POS = 'X600_POS', // Validador amarillo
 }
 
 @Entity('devices')
 export class Device {
-  @PrimaryGeneratedColumn()
-  id: number;
+	@PrimaryGeneratedColumn()
+	id: number;
 
-  @Column()
-  code: string;
+	@Column()
+	code: string;
 
-  @Column()
-  name: string;
+	@Column()
+	name: string;
 
-  @Column()
-  description: string;
+	@Column()
+	description: string;
 
-  @Column()
-  serial: string;
+	@Column()
+	serial: string;
 
-  @Column()
-  imei: string;
+	@Column()
+	imei: string;
 
-  @Column({
-    type: 'enum',
-    enum: DeviceType,
-  })
-  type: DeviceType;
+	@Column({
+		type: 'enum',
+		enum: DeviceType,
+	})
+	type: DeviceType;
 
-  @Column({ default: true })
-  status: boolean;
+	@Column({ default: true })
+	status: boolean;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+	@UpdateDateColumn()
+	updated_at: Date;
 
-  @CreateDateColumn()
-  created_at: Date;
+	@CreateDateColumn()
+	created_at: Date;
+
+	@OneToMany(() => Transaction, (transaction) => transaction.device)
+	transactions: Transaction[];
 }
