@@ -1,10 +1,16 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { CreateTransactionDto } from "./dto/create-transaction.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Transaction } from "src/database/entities/transaction.entity";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class TransactionsService {
-    constructor(){}
+    constructor(
+        @InjectRepository(Transaction)
+        private readonly userRepository: Repository<Transaction>,
+    ){}
     async findTransactionsForToday() {
         return {
             message: 'Transactions',

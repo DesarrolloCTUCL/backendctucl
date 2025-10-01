@@ -11,6 +11,12 @@ export class DeviceController {
 		return this.deviceService.create(createDeviceDto)
 	}
 
+	@Get()
+	findAllDevices() {
+		return this.deviceService.findAll()
+	}
+
+
 
 
 }
