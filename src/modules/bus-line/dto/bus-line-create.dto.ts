@@ -11,7 +11,7 @@ export class CreateBusLineDto {
 
   @ApiProperty({
     description: 'Nombre de la línea de bus',
-    example: 'L-2',
+    example: 'Pitas - El rosal',
   })
   @IsString()
   @IsNotEmpty()
