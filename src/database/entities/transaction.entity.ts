@@ -35,9 +35,6 @@ export class Transaction {
 	@Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
 	balance: number;
 
-	@Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
-	last_balance: number;
-
 	@CreateDateColumn({ type: 'timestamp without time zone' })
 	timestamp: Date;
 

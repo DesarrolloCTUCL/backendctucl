@@ -4,12 +4,15 @@ import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Transaction } from "src/database/entities/transaction.entity";
 import { Repository } from "typeorm";
+import { Device } from "src/database/entities/device.entity";
 
 @Injectable()
 export class TransactionsService {
     constructor(
         @InjectRepository(Transaction)
-        private readonly userRepository: Repository<Transaction>,
+        private readonly transactionRepository: Repository<Transaction>,
+        @InjectRepository(Device)
+        private readonly deviceRepository: Repository<Device>
     ){}
     async findTransactionsForToday() {
         return {
@@ -31,10 +34,26 @@ export class TransactionsService {
 
 
     async create(createTransactionDto: CreateTransactionDto) {
-        console.log(createTransactionDto);
+     
+        const device = await this.deviceRepository.findOne({
+            where:{id: createTransactionDto.device_id,status:true}
+        })
+
+        if(!device){
+            throw new NotFoundException(`El dispositivo con el ID ${createTransactionDto.device_id} no existe`);
+        }
+        const transactionData = this.transactionRepository.create(
+            {
+                ...createTransactionDto,
+                device: device
+            }
+        )
+
+        const transaction = await this.transactionRepository.save(transactionData);
+
         return {
             message: 'New Transactions has been added',
-            result: createTransactionDto,
+            result: transaction,
             status: 201,
         }
     }
