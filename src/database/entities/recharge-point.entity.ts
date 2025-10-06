@@ -108,7 +108,5 @@ export class Recharge_point {
   @ApiProperty({ description: 'Fecha de última actualización', example: '2025-06-13T12:00:00Z' })
   updated_at: Date;
 
-  @OneToMany(() => Device, (device) => device.charging_point)
-  @JoinColumn({ name: 'device_id' })
-  devices: Device[];
+
 }

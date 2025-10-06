@@ -19,6 +19,7 @@ import { logGPSTable } from './modules/bus-control/log_gps/log-gps.module';
 import { TrackGpsModule } from './modules/bus-control/mqttBus/trackgps.module';
 import { GetTrackGpsModule } from './modules/bus-control/trackgps/get-trackgps.module';
 import { ControlStripModule } from './modules/bus-control/control-strip/control-strip.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 
 @Module({
@@ -44,7 +45,8 @@ import { ControlStripModule } from './modules/bus-control/control-strip/control-
     logGPSTable,
     TrackGpsModule,
     GetTrackGpsModule,
-    ControlStripModule
+    ControlStripModule,
+    TransactionsModule
   ],
   controllers: [],
 })
