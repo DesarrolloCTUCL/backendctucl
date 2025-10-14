@@ -41,7 +41,7 @@ export class CreateTransactionDto {
 	@Type(() => Number)
 	longitude?: number;
 
-	@IsNumber()
-	@Type(() => Number)
-	device_id: number;
+	@IsString()
+	@IsNotEmpty()
+	device: string;
 }

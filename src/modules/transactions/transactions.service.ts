@@ -36,11 +36,11 @@ export class TransactionsService {
     async create(createTransactionDto: CreateTransactionDto) {
      
         const device = await this.deviceRepository.findOne({
-            where:{id: createTransactionDto.device_id,status:true}
+            where:{code: createTransactionDto.device,status:true}
         })
 
         if(!device){
-            throw new NotFoundException(`El dispositivo con el ID ${createTransactionDto.device_id} no existe`);
+            throw new NotFoundException(`El dispositivo con el CODIGO ${createTransactionDto.device} no existe`);
         }
         const transactionData = this.transactionRepository.create(
             {
