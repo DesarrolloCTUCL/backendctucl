@@ -40,7 +40,8 @@ export class DispatchDisplayService {
     }
   
     const itinerarios = await this.itinerarioRepo.find({
-      where: { itinerary: despacho.itinerary },
+      where: { itinerary: despacho.itinerary, is_active: true, },
+      
       order: { start_time: 'ASC' },
       relations: ['shift'],
     });
