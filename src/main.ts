@@ -25,6 +25,7 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
 
   const whitelist = [
+    'http://localhost:3000', 
     'http://localhost:4000',
     'https://ctucl-manager-frontend.vercel.app',
     'https://frontendctucl.vercel.app',
