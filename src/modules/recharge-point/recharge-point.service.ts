@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Recharge_point } from './../../database/entities/recharge-point.entity';
+import { CreateRechargePointDto } from './dto/create-recharge-point.dto';
 
 @Injectable()
 export class RechargepointService {
@@ -20,5 +21,10 @@ export class RechargepointService {
       throw new NotFoundException(`RechargePoint with ID ${id} not found`);
     }
     return result;
+  }
+
+  async create(dto:CreateRechargePointDto):Promise<Recharge_point>{
+    const newRechargePoint = this.rechargepointRepository.create(dto);
+    return this.rechargepointRepository.save(newRechargePoint)
   }
 }
