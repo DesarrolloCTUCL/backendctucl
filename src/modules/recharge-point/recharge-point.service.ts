@@ -27,4 +27,17 @@ export class RechargepointService {
     const newRechargePoint = this.rechargepointRepository.create(dto);
     return this.rechargepointRepository.save(newRechargePoint)
   }
+
+  async findBasicInfo(): Promise<
+  { business_name: string; lat: number; long: number; address: string }[]
+> {
+  return this.rechargepointRepository.find({
+    select: ['business_name', 'address','lat', 'long'],
+  })
+}
+
+async countAll(): Promise<{ total: number }> {
+  const total = await this.rechargepointRepository.count()
+  return { total }
+}
 }

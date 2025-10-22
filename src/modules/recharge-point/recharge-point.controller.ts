@@ -20,4 +20,15 @@ export class RechargepointController {
   create(@Body () dto: CreateRechargePointDto){
     return this.rechargepointService.create(dto);
   }
+    // ✅ Nuevo endpoint: solo datos básicos
+    @Get('info/basic')
+    getBasicInfo() {
+      return this.rechargepointService.findBasicInfo()
+    }
+  
+    // ✅ Nuevo endpoint: conteo total
+    @Get('info/count')
+    getCount() {
+      return this.rechargepointService.countAll()
+    }
 }
