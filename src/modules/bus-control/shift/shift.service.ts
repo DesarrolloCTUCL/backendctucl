@@ -27,19 +27,29 @@ export class ShiftService {
         if (!shift) {
           throw new NotFoundException(`Shift with ID ${id} not found`);
         }
-    
+      
         const chainpcCount = shift.chainpc.split(',').map(e => e.trim()).filter(e => e !== '').length;
-        const timesCount = newTimes.split(',').map(e => e.trim()).filter(e => e !== '').length;
-    
-        if (chainpcCount !== timesCount) {
+        const timesArray = newTimes.split(',').map(e => e.trim()).filter(e => e !== '');
+      
+        if (chainpcCount !== timesArray.length) {
           throw new BadRequestException(
-            `El número de elementos en 'times' (${timesCount}) debe coincidir con 'chainpc' (${chainpcCount})`
+            `El número de elementos en 'times' (${timesArray.length}) debe coincidir con 'chainpc' (${chainpcCount})`
           );
         }
-    
+      
+        // 🔹 Validar que cada elemento sea un número válido (entero o decimal)
+        for (const t of timesArray) {
+          if (isNaN(Number(t))) {
+            throw new BadRequestException(
+              `El formato de 'times' es inválido. Cada elemento debe ser un número válido.`
+            );
+          }
+        }
+      
         shift.times = newTimes;
         return this.shiftRepository.save(shift);
       }
+      
     }
       
 
