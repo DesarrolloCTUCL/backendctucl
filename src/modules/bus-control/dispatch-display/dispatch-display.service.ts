@@ -58,27 +58,30 @@ export class DispatchDisplayService {
         const ids = shift.chainpc.split(',').map(id => parseInt(id.trim()));
         const estaciones = await this.busStationRepo.findBy({ id: In(ids) });
         estaciones.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-  
+      
         const [h, m, s] = it.start_time.split(':').map(Number);
         let currentTime = new Date();
         currentTime.setHours(h, m, s, 0);
-  
+      
         const timesArray = shift.times.split(',').map(t => parseFloat(t.trim()));
-        let accumulatedMinutes = 0;
-  
+        let accumulatedSeconds = 0;
+      
         estacionesFormateadas = estaciones.map((est, index) => {
           const rawTime = timesArray[index] || 0;
+      
+          // Separa parte entera (minutos) y decimal (segundos)
           const minutosEnteros = Math.floor(rawTime);
           const decimales = rawTime - minutosEnteros;
-  
-          const segundos = Math.abs(decimales - 0.3) < 0.01 ? 30 : 0;
-  
-          accumulatedMinutes += minutosEnteros;
-          const totalMilliseconds = (accumulatedMinutes * 60 + segundos) * 1000;
-  
-          const timeWithOffset = new Date(currentTime.getTime() + totalMilliseconds);
+      
+          // Convierte la parte decimal a segundos (por ejemplo, .5 => 50 seg, .15 => 15 seg)
+          const segundos = Math.round(decimales * 100); // .3 → 30, .5 → 50
+      
+          // Acumula tiempo total en segundos
+          accumulatedSeconds += minutosEnteros * 60 + segundos;
+      
+          const timeWithOffset = new Date(currentTime.getTime() + accumulatedSeconds * 1000);
           const hora = timeWithOffset.toTimeString().slice(0, 8);
-  
+      
           return {
             numero: ids[index],
             radius: est.radius,
@@ -89,6 +92,7 @@ export class DispatchDisplayService {
           };
         });
       }
+      
   
       resultado.push({
         recorrido: it.route,
