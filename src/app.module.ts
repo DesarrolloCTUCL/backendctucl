@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppConfigModule } from './config/config.module';
 import { UsersModule } from './modules/users/users.module';
 import { BusStationModule } from './modules/bus-control/bus-station/bus_station.module';
@@ -20,11 +20,14 @@ import { TrackGpsModule } from './modules/bus-control/mqttBus/trackgps.module';
 import { GetTrackGpsModule } from './modules/bus-control/trackgps/get-trackgps.module';
 import { ControlStripModule } from './modules/bus-control/control-strip/control-strip.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { AppLoggerModule } from './common/logger/app-logger.module';
+import { LoggerMiddleware } from './common/logger/app-logger.middleware';
 
 
 @Module({
   imports: [
     AppConfigModule, // Importa el módulo de configuración
+    AppLoggerModule,
     UsersModule,
     BusStationModule,
     DatabaseModule,
@@ -46,8 +49,12 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     TrackGpsModule,
     GetTrackGpsModule,
     ControlStripModule,
-    TransactionsModule
+    TransactionsModule,
   ],
   controllers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*'); // todas las rutas
+  }
+}
