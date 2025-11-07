@@ -16,13 +16,21 @@ export class ScheduleController {
   }
 
   @Get('by-exact-date')
-  async findByExactDate(@Query('date') date: string): Promise<Schedule[]> {
+  async findByExactDate(@Query('date') date: string) {
     const parsedDate = new Date(date);
+  
     if (isNaN(parsedDate.getTime())) {
       throw new BadRequestException('Formato de fecha inválido. Usa YYYY-MM-DD');
     }
-    return this.scheduleService.findByExactDate(parsedDate);
+  
+    const schedules = await this.scheduleService.findByExactDate(parsedDate);
+  
+    return {
+      status: 'success',
+      data: schedules,
+    };
   }
+  
   
   @Get(':id')
   getOne(@Param('id') id: number) {
