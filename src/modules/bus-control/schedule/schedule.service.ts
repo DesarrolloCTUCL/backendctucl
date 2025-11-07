@@ -66,16 +66,14 @@ export class ScheduleService {
     return result;
   }
 
-  async findByExactDate(date: Date): Promise<{ data: Schedule[] }> {
+  async findByExactDate(date: Date): Promise<Schedule[]> {
     const dateOnly = date.toISOString().split('T')[0];
-    console.log('🔎 Fecha buscada:', dateOnly);
   
-    const result = await this.scheduleRepository
+    return await this.scheduleRepository
       .createQueryBuilder('schedule')
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
       .getMany();
-  
-    return { data: result };  // ✅ Ahora coincide con tu frontend
   }
+  
   
 }
