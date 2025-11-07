@@ -4,9 +4,16 @@ import { Observable, map } from 'rxjs';
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest();
+    const url = request.url;
+
+    // ✅ excluir el endpoint exacto sin importar path o prefijos
+    if (url.includes('/recharge-point/info/count')) {
+      return next.handle(); // devuelve { total: 157 }
+    }
+
     return next.handle().pipe(
       map((data) => {
-        // Si ya viene estandarizado, lo dejamos tal cual
         if (data && (data.status === 'success' || data.status === 'error')) {
           return data;
         }
