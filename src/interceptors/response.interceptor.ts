@@ -7,19 +7,19 @@ export class ResponseInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const url = request.url;
 
-    // ✅ NO modificar este endpoint específico
-    if (url.includes('/recharge-point/info/count')) {
-      return next.handle();
+    // ✅ EXCEPCIONES – Android necesita formato especial
+    if (
+      url.includes('/recharge-point/info/count') ||
+      url === '/api/recharge-point'
+    ) {
+      return next.handle(); // <-- no tocar la respuesta
     }
 
     return next.handle().pipe(
       map((data) => {
-        // Si ya tiene "status", respetarlo
         if (data && (data.status === 'success' || data.status === 'error')) {
           return data;
         }
-
-        // Respuesta general
         return {
           status: 'success',
           data,
@@ -28,3 +28,4 @@ export class ResponseInterceptor implements NestInterceptor {
     );
   }
 }
+
