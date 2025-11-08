@@ -7,10 +7,16 @@ import { CreateRechargePointDto } from './dto/create-recharge-point.dto';
 export class RechargepointController {
   constructor(private readonly rechargepointService: RechargepointService) { }
 
-  @Get()
-  getAll() {
-    return this.rechargepointService.findAll();
-  }
+@Get()
+async getAll() {
+  const data = await this.rechargepointService.findAll();
+  return {
+    status: 'success',
+    message: 'Puntos de recarga obtenidos correctamente',
+    data: data
+  };
+}
+
 
   @Get(':id')
   getOne(@Param('id') id: number) {
