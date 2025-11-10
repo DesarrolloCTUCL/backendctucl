@@ -17,7 +17,7 @@ export class CreatePassengerCounterDto {
   @IsOptional()
   @IsInt()
   @ApiPropertyOptional({ description: 'ID del itinerario (Itinerary)', example: 1, nullable: true })
-  intenary_id?: number;
+  itinerary_id?: number;
 
   @IsDate()
   @Type(() => Date)

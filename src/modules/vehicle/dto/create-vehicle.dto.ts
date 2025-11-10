@@ -6,8 +6,10 @@ import {
   IsBoolean,
   IsOptional,
   IsNumber,
+  IsInt,
 } from 'class-validator';
-import { OperationStatus, Grupo, Company } from 'src/database/entities/vehicle.entity';
+import { OperationStatus, Grupo, CompanyEnum } from 'src/database/entities/vehicle.entity';
+import { Company } from 'src/database/entities/company.entity';
 
 export class CreateVehicleDto {
   @IsNumber()
@@ -31,9 +33,9 @@ export class CreateVehicleDto {
   @ApiProperty({ description: 'Número de teléfono del socio', example: '+593987654321' })
   phone: string;
 
-  @IsEnum(Company)
-  @ApiProperty({ description: 'Empresa a la que pertenece el vehículo', enum: Company })
-  company: Company;
+  @IsInt()
+  @ApiProperty({ description: 'Empresa a la que pertenece el vehículo', example:1 })
+  company: CompanyEnum;
 
   @IsString()
   @ApiProperty({ description: 'Placa del bus', example: 'ABC-1234' })

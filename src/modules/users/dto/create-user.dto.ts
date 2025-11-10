@@ -8,7 +8,7 @@ import {
   IsBoolean,
   IsInt,
 } from 'class-validator';
-import { AccountType } from 'src/database/entities/user.entity';
+import { AccountType } from 'src/common/enum/account-type.enum';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'Nombre de usuario único', example: 'jdoe' })

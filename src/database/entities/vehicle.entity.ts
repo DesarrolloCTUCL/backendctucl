@@ -1,20 +1,27 @@
-import { Entity, PrimaryColumn, Column, ManyToOne,JoinColumn,PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsPhoneNumber, IsNumber, IsIn, IsBoolean, IsOptional } from 'class-validator';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { User } from './user.entity';
+import { Company } from './company.entity';
 import { PassengerCounter } from './passenger-counter.entity';
+
 export enum OperationStatus {
-    INACTIVE = 'inactivo',
-    ON_ROUTE = 'en_ruta',
-    WAITING = 'reten',
+  INACTIVE = 'inactivo',
+  ON_ROUTE = 'en_ruta',
+  WAITING = 'reten',
 }
 
 export enum Grupo {
-    GRUPO_1 = 'grupo_1',
-    GRUPO_2 = 'grupo_2',
+  GRUPO_1 = 'grupo_1',
+  GRUPO_2 = 'grupo_2',
 }
 
-export enum Company {
+export enum CompanyEnum {
     mayo24 = '24mayo',
     cuxibamba = 'cuxibamba',
     urbasur = 'urbasur',
@@ -23,82 +30,55 @@ export enum Company {
 
 @Entity('vehicles')
 export class Vehicle {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn()
-    @ApiProperty({ description: 'ID interno autoincremental del vehículo', example: 1 })
-    id: number;
-    
-    @Column({ unique: true })
-    @IsNumber()
-    @ApiProperty({ description: 'Número de registro del bus (ej: 1500 - 1738)', example: 1523 })
-    register: number;
+  @Column({ unique: true })
+  register: number;
 
-   
-    @Column()
-    @IsString()
-    @ApiProperty({ description: 'Nombre del socio (dueño) del bus', example: 'Juan Pérez' })
-    partner: string;
+  @Column()
+  partner: string;
 
-    @ManyToOne(() => User, (user) => user.vehicles, { nullable: true })
-    @JoinColumn({ name: 'user_id' })
-    @IsOptional()
-    @ApiProperty({
-    description: 'Usuario dueño del vehículo. Si no tiene, el vehículo pertenece a la empresa',
-    type: () => User,
-    required: false,
-    })
-    user?: User;
-    
-    @Column({ nullable: true })
-    @IsOptional()
-    @IsString()
-    @ApiProperty({ description: 'Cédula del socio', example: '0102030405', required: false })
-    dni?: string;
-
-    @Column({ nullable: true })
-    @IsOptional()
-    @IsPhoneNumber('EC') // Cambia el código según el país
-    @ApiProperty({ description: 'Número de teléfono del socio', example: '+593987654321', required: false })
-    phone?: string;
-
- 
-    @Column({
-        type: 'enum',
-        enum: Company,
-    })
-    @IsEnum(Company)
-    @ApiProperty({ description: 'Empresa a la que pertenece el bus', enum: Company })
-    company: Company;
+  @ManyToOne(() => User, (user) => user.vehicles, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
 
 
-    @Column({ nullable: true })
-    @IsOptional()
-    @IsString()
-    @ApiProperty({ description: 'Placa del bus', example: 'ABC-1234', required: false })
-    plate?: string;
+  @Column({
+      type: 'enum',
+      enum: CompanyEnum,
+  })
+  company: CompanyEnum;
 
-    @Column({
-        type: 'enum',
-        enum: OperationStatus,
-        default: OperationStatus.INACTIVE,
-    })
-    @IsEnum(OperationStatus)
-    @ApiProperty({ description: 'Estado operativo del bus', enum: OperationStatus })
-    operation_status: OperationStatus;
+  @ManyToOne(() => Company, (company) => company.vehicles, { nullable: true })
+  @JoinColumn({ name: 'company_id' })
+  company_id?: Company;
 
-    @Column({
-        type: 'enum',
-        enum: Grupo,
-    })
-    @IsEnum(Grupo)
-    @ApiProperty({ description: 'Grupo al que pertenece el bus', enum: Grupo })
-    grupo: Grupo;
+  @Column({ nullable: true })
+  dni?: string;
 
-    @Column({ type: 'boolean', default: true })
-    @ApiProperty({ description: 'Indica si el bus está activo o eliminado', example: true })
-    status: boolean;
+  @Column({ nullable: true })
+  phone?: string;
 
+  @Column({ nullable: true })
+  plate?: string;
 
-    @OneToMany(() => PassengerCounter, (counter) => counter.bus_id)
-    counter: PassengerCounter[]
+  @Column({
+    type: 'enum',
+    enum: OperationStatus,
+    default: OperationStatus.INACTIVE,
+  })
+  operation_status: OperationStatus;
+
+  @Column({
+    type: 'enum',
+    enum: Grupo,
+  })
+  grupo: Grupo;
+
+  @Column({ type: 'boolean', default: true })
+  status: boolean;
+
+  @OneToMany(() => PassengerCounter, (counter) => counter.bus)
+  counter: PassengerCounter[];
 }

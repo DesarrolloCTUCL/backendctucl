@@ -9,13 +9,7 @@ interface EnvConfig {
   DB_PASSWORD:string
   DB_NAME:string
   DB_SSL:number
-  BROKER_URL: string
-  BROKER_PORT: number
-  USERNAME_BROKER: string
-  PASSWORD_BROKER: string
-  FIREBASE_PROJECT_ID: string
-  FIREBASE_CLIENT_EMAIL: string
-  FIREBASE_PRIVATE_KEY: string
+
   PORT: number
   NODE_ENV:string
   EMAIL_USER:string
@@ -31,17 +25,8 @@ interface DbConfig {
   database:string,
   ssl:boolean
 }
-interface MqttConfig {
-  broker: string;
-  port: number
-  username: string
-  password: string
-}
-interface FirebaseConfig {
-  project_id: string,
-  client_email: string,
-  private_key: string
-}
+
+
 interface AppConfig {
   port: number,
   node_env: string

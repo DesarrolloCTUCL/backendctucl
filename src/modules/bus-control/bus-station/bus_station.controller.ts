@@ -1,5 +1,5 @@
 import { Controller, UseGuards, Post, Body, Get, Param, HttpStatus, HttpException } from '@nestjs/common';
-import { MqttCommand } from './dto/bus-station-mqtt.dto';
+
 import { BusStationService } from './bus_station.service';
 import { CreateBusStationDto } from './dto/create-bus-station.dto';
 
@@ -12,15 +12,6 @@ export class BusStationController {
     return this.bus_station_service.create(createBusStationDto);
   }
 
-  @Post('mqtt-command')
-  executeCommand(@Body() mqttCommand: MqttCommand) {
-    return this.bus_station_service.exectMqttCommand(mqttCommand);
-  }
-
-  @Get('mqtt-history')
-  async getData() {
-    return this.bus_station_service.getMqttHistory();
-  }
 
   @Get('control-points')  // <--- Mover esta ruta fija arriba de la dinámica
   async getControlPoints() {

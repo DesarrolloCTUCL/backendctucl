@@ -80,7 +80,7 @@ export class VehicleService {
 
     const results = await this.passengerRepository.find({
         where: {
-        bus_id: vehicle,
+        bus: vehicle,
         timestamp: Between(startDate, endDate),
         },
     });
@@ -108,28 +108,36 @@ export class VehicleService {
     }
 
     async registerCounter(createCounter: CreatePassengerCounterDto) {
+  
         const vehicle = await this.vehicleRepository.findOne({
-            where: { register: createCounter.bus },
+            where: { register: createCounter.bus, status: true },
         });
         if (!vehicle) {
-            throw new NotFoundException(`Vehicle with ID ${createCounter.bus} not found`);
+            throw new NotFoundException(`Vehicle with register ${createCounter.bus} not found`);
         }
+
+
         let itinerary: Itinerary | null = null;
-        if (createCounter.intenary_id != null) {
+        if (createCounter.itinerary_id != null) {
             itinerary = await this.itineraryRepository.findOne({
-                where: { id: createCounter.intenary_id },
+            where: { id: createCounter.itinerary_id },
             });
             if (!itinerary) {
-                throw new NotFoundException(`Itinerary with ID ${createCounter.intenary_id} not found`);
+            throw new NotFoundException(`Itinerary with ID ${createCounter.itinerary_id} not found`);
             }
         }
+
+  
         const counter = this.passengerRepository.create({
             timestamp: createCounter.timestamp,
-            bus_id: vehicle,
-            intenary_id: itinerary ?? null,
-            special:createCounter.special
+            bus: vehicle,
+            itinerary: itinerary ?? undefined,
+            special: createCounter.special,
         });
+
+ 
         const result = await this.passengerRepository.save(counter);
+
         return {
             message: 'Counter created successfully',
             result,

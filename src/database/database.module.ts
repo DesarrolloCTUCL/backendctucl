@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from 'src/config/config.module';
 import { AppConfigService} from 'src/config/config.service';
-import { MqttCommandHistory } from './entities/mqtt-command-history.entity';
 import { Company } from './entities/company.entity';
 import { Recharge_point } from './entities/recharge-point.entity';
 import { User } from './entities/user.entity';
@@ -42,7 +41,6 @@ import { Transaction } from './entities/transaction.entity';
           Device,
           Itinerary,
           Log_gps,
-          MqttCommandHistory,
           PassengerCounter,
           Recharge_point,
           Schedule,

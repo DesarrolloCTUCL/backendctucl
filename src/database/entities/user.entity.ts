@@ -1,72 +1,62 @@
 import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	ManyToOne,
-	OneToMany,
-	JoinColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Company } from './company.entity';
-import { MqttCommandHistory } from './mqtt-command-history.entity';
 import { Vehicle } from './vehicle.entity';
-
-export enum AccountType {
-	ADMIN = 'ADMIN',
-	STAFF = 'STAFF',
-	DRIVER = 'DRIVER',
-	PARTNER = 'PARTNER',
-}
+import { AccountType } from 'src/common/enum/account-type.enum';
 
 @Entity('users')
 export class User {
-	@PrimaryGeneratedColumn()
-	id: number;
-	
-	@Column({ unique: true })
-	email: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-	@Column({ nullable: true })
-	phone?: string;
+  @Column({ unique: true })
+  email: string;
 
-	@Column({ nullable: true })
-	dni?: string;
+  @Column({ nullable: true })
+  phone?: string;
 
-	@Column({ nullable: true })
-	address?: string;
+  @Column({ nullable: true })
+  dni?: string;
 
-	@Column({
-		type: 'enum',
-		enum: AccountType,
-	})
-	account_type: AccountType;
+  @Column({ nullable: true })
+  address?: string;
 
-	@Column()
-	name: string;
+  @Column({
+    type: 'enum',
+    enum: AccountType,
+  })
+  account_type: AccountType;
 
-	@Column()
-	lastname: string;
+  @Column()
+  name: string;
 
-	@ManyToOne(() => Company, (company) => company.users, { nullable: true, eager: true })
-	@JoinColumn({ name: 'company_id' })
-	company?: Company;
+  @Column()
+  lastname: string;
 
-	@OneToMany(() => Vehicle, (vehicle) => vehicle.user, { eager: true })
-	vehicles?: Vehicle[];
+  @Column()
+  birthday: Date;
 
-	@Column()
-	birthday: Date;
+  @CreateDateColumn()
+  created_at: Date;
 
-	@CreateDateColumn()
-	created_at: Date;
+  @UpdateDateColumn()
+  updated_at: Date;
 
-	@UpdateDateColumn()
-	updated_at: Date;
+  @Column({ default: true })
+  status: boolean;
 
-	@Column({ default: true })
-	status: boolean;
+  @ManyToOne(() => Company, (company) => company.users, { nullable: true, eager: true })
+  @JoinColumn({ name: 'company_id' })
+  company?: Company;
 
-	@OneToMany(() => MqttCommandHistory, (command) => command.user)
-	mqttCommands: MqttCommandHistory[];
+  @OneToMany(() => Vehicle, (vehicle) => vehicle.user)
+  vehicles?: Vehicle[];
 }

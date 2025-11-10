@@ -13,7 +13,7 @@ import { Shift } from './shift.entity';
 import { PassengerCounter } from './passenger-counter.entity';
 import { ControlStrip } from './control-strip.entity'; // Importa control-strip
 
-@Index('uq_code_active', ['code'], { unique: true, where: `"is_active" = true` })
+//@Index('uq_code_active', ['code'], { unique: true, where: `"is_active" = true` })
 @Entity('itinerary')
 export class Itinerary {
   @PrimaryGeneratedColumn()
@@ -45,7 +45,7 @@ export class Itinerary {
   @JoinColumn({ name: 'shift_id' })
   shift: Shift;
 
-  @OneToMany(() => PassengerCounter, (counter) => counter.intenary_id)
+  @OneToMany(() => PassengerCounter, (counter) => counter.itinerary)
   counter: PassengerCounter[];
 
   // Relación con ControlStrip

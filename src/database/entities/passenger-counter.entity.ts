@@ -1,55 +1,23 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn
-} from 'typeorm';
-import {
-  IsInt,
-  IsDate,
-  IsBoolean,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
 import { Itinerary } from './itinerary.entity';
 
-
-@Entity('passenger_counter')
+@Entity()
 export class PassengerCounter {
   @PrimaryGeneratedColumn()
-  @ApiProperty({ description: 'ID único del reporte de conteo', example: 1 })
   id: number;
 
-  @ManyToOne(() => Vehicle, (vehicle) => vehicle.counter)
-  @JoinColumn({ name: 'bus_id' })
-  @ApiProperty({ description: 'id del bus', example: 1 })
-  bus_id: Vehicle;
-
-
-  @ManyToOne(() => Itinerary, (itinerary) => itinerary.counter, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'itinerary_id' })
-  @ApiPropertyOptional({ description: 'id del itinerario', example: 1, nullable: true })
-  intenary_id?: Itinerary | null;
-
-
-  @Column({ type: 'timestamp' })
-  @IsDate()
-  @Type(() => Date)
-  @ApiProperty({ description: 'Tiempo de registro del conteo', example: '2025-06-13T10:00:00Z' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   timestamp: Date;
 
+  @ManyToOne(() => Vehicle, (vehicle) => vehicle.counter, { eager: true })
+  @JoinColumn({ name: 'bus_id' })
+  bus: Vehicle;
 
-  @Column({ type: 'boolean' })
-  @IsBoolean()
-  @Type(() => Boolean) // 🔥 Añadir esto es buena práctica para transformar correctamente
-  @ApiProperty({ description: 'conteo especial o no', example: false })
+  @ManyToOne(() => Itinerary, (itinerary) => itinerary.counter, { nullable: true, eager: true })
+  @JoinColumn({ name: 'itinerary_id' })
+  itinerary: Itinerary;
+
+  @Column({ default: false })
   special: boolean;
-
-
 }
