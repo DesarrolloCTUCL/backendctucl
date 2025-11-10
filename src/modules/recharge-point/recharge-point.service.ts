@@ -40,4 +40,5 @@ async countAll(): Promise<{ total: number }> {
   const total = await this.rechargepointRepository.count()
   return { total }
 }
+
 }

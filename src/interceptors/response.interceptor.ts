@@ -4,9 +4,19 @@ import { Observable, map } from 'rxjs';
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest();
+    const url = request.url;
+
+    // ✅ EXCEPCIONES – Android necesita formato especial
+    if (
+      url.includes('/recharge-point/info/count') ||
+      url === '/api/recharge-point'
+    ) {
+      return next.handle(); // <-- no tocar la respuesta
+    }
+
     return next.handle().pipe(
       map((data) => {
-        // Si ya viene estandarizado, lo dejamos tal cual
         if (data && (data.status === 'success' || data.status === 'error')) {
           return data;
         }
@@ -18,3 +28,4 @@ export class ResponseInterceptor implements NestInterceptor {
     );
   }
 }
+
