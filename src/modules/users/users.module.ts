@@ -5,14 +5,17 @@ import { DatabaseModule } from 'src/database/database.module';
 import { User } from 'src/database/entities/user.entity';
 import { Company } from 'src/database/entities/company.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppLoggerService } from 'src/common/logger/app-logger.service';
+import { MailsModule } from 'src/shared/mails/mails.module';
+import { AppConfigModule } from 'src/config/config.module';
 
 
 
 
 @Module({
-  imports:[DatabaseModule,TypeOrmModule.forFeature([User,Company])],
+  imports:[DatabaseModule,TypeOrmModule.forFeature([User,Company]),MailsModule,AppConfigModule],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService,AppLoggerService],
   exports:[UsersService]
 })
 export class UsersModule {}

@@ -36,3 +36,9 @@ interface EmailConfig {
   email_user: string,
   email_password: string
 }
+
+interface CryptoConfig {
+  salt: { size: number };
+  jwt: { secret: string; expiration: string };
+  secret: { key: string };
+}

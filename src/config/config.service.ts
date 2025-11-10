@@ -8,7 +8,8 @@ export class AppConfigService {
     private readonly _db: DbConfig;
     private readonly _app:AppConfig;
     private readonly _email:EmailConfig;
-    constructor(private readonly configService: ConfigService<EnvConfig>) {
+    private readonly _crypto: CryptoConfig;
+    constructor(private readonly configService: ConfigService) {
         this._db = {
             type: this.configService.get('DB_TYPE') as string,
             host: this.configService.get('DB_HOST') as string,
@@ -26,6 +27,19 @@ export class AppConfigService {
             email_user:this.configService.get('EMAIL_USER') as string,
             email_password:this.configService.get('EMAIL_PASSWORD') as string,
         }
+
+         this._crypto = {
+            salt: {
+                size: Number(this.configService.get('BCRYPT_SALT')),
+            },
+            jwt: {
+                secret: this.configService.get('JWT_SECRET') as string,
+                expiration: this.configService.get('JWT_EXPIRATION_MS') as string,
+            },
+            secret: {
+                key: this.configService.get('ENCRYPTION_SECRET_KEY') as string,
+            },
+        };
     }
     get config() {
         return {
@@ -34,5 +48,8 @@ export class AppConfigService {
           email:this._email
         };
       }
+      get crypto() {
+    return this._crypto;
+  }
     
 }

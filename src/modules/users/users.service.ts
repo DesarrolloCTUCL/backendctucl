@@ -1,89 +1,116 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { ValidateUserDto } from './dto/validate-user.dto';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { hash } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/database/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Company } from 'src/database/entities/company.entity';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { AppConfigService } from 'src/config/config.service';
+import { AccountType } from 'src/common/enum/account-type.enum';
+import { WelcomeMailFromAdmin } from 'src/shared/mails/templates/welcome-mail-from-admin';
+import { MailsService } from 'src/shared/mails/mails.service';
+import { AppLoggerService } from 'src/common/logger/app-logger.service';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Company)
-    private readonly companyRepository: Repository<Company>,
-  ) { }
+	constructor(
+		private appConfigService: AppConfigService,
+		private mailsService: MailsService,
+		private logger: AppLoggerService,
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>,
+		@InjectRepository(Company)
+		private readonly companyRepository: Repository<Company>,
+	) { }
 
-  async create(createUserDto: CreateUserDto) {
-    try {
+	async registerUser(registerUserDto: RegisterUserDto) {
+		// Validación temprana del DNI
+		const trimmedDni = registerUserDto.dni.trim();
+		if (trimmedDni.length < 10) {
+			throw new BadRequestException('DNI must be at least 10 characters long');
+		}
 
-      const existingEmail = await this.userRepository.findOne({
-        where: { email: createUserDto.email },
-      });
+		// Verificar si el usuario ya existe
+		const existingUser = await this.userRepository.findOne({
+			where: [
+				{ email: registerUserDto.email },
+				{ dni: trimmedDni },
+			],
+		});
 
-      const companyRepository = await this.companyRepository.findOne({
-        where: { id: createUserDto.company_id },
-      });
+		if (existingUser) {
+			throw new HttpException(
+				'User with this email or DNI already exists',
+				HttpStatus.CONFLICT,
+			);
+		}
 
-      if (!companyRepository) {
-        throw new ConflictException('La empresa no existe');
-      }
+		// Generar contraseña aleatoria
+		const password = Math.random().toString(36).slice(-8);
+		const hashedPassword = await hash(
+			password,
+			this.appConfigService.crypto.salt.size,
+		);
+
+		// Crear y guardar usuario
+		let savedUser: User;
+		try {
+			const userEntity = this.userRepository.create({
+				name: registerUserDto.name.toUpperCase(),
+				lastname: registerUserDto.lastname.toUpperCase(),
+				email: registerUserDto.email,
+				dni: trimmedDni,
+				phone: registerUserDto.phone,
+				address: registerUserDto.address,
+				password: hashedPassword,
+				role: AccountType.STAFF,
+				gender: registerUserDto.gender,
+				birthday: registerUserDto.birthday
+			});
+
+			savedUser = await this.userRepository.save(userEntity);
+		} catch (error) {
+			throw new InternalServerErrorException('Error creating user');
+		}
 
 
-      if (existingEmail) {
-        throw new ConflictException('El correo electrónico ya está registrado');
-      }
-      let userData = {
-        ...createUserDto,
-        company: companyRepository,
-        name: createUserDto.name.toLocaleUpperCase(),
-        lastname: createUserDto.lastname.toLocaleUpperCase(),
-        address: createUserDto.address ? createUserDto.address.toLocaleUpperCase() : '',
-      }
-      const savedUser = await this.userRepository.save(userData);
+		try {
+			const mail = new WelcomeMailFromAdmin(
+				savedUser.name,
+				savedUser.email,
+				password,
+				'SIMTRA',
+				'https://consorcioloja.com/_next/image?url=%2Fimg%2Flogo.png&w=256&q=75',
+				'simtra-support',
+			);
 
-      return {
-        message: 'Usuario creado con éxito',
-        status: 201,
-        result: savedUser,
-      };
-    } catch (error) {
-      console.error('Error al crear usuario:', error);
-      return {
-        message: error instanceof Error ? error.message : 'Error desconocido',
-        status: 500,
-        result: null,
-      };
-    }
-  }
+			await this.mailsService.sendMail({
+				to: savedUser.email,
+				subject: `${savedUser.name}, bienvenido a SIMTRA${process.env.NODE_ENV === 'production'
+					? ''
+					: ' - [ Ambiente de pruebas ]'
+					}`,
+				html: mail.getHtml(),
+			});
 
-  async findUserById(id: string) {
-    try {
-      const userId = parseInt(id, 10);
-      const user = await this.userRepository.findOneBy({ id: userId });
+			return {
+				result: savedUser,
+				message: 'User created successfully and sended mail',
+			};
+		} catch (emailError) {
+			this.logger.warn(
+				'Email could not be sent, but user was created',
+				emailError instanceof Error ? emailError.message : JSON.stringify(emailError),
+			);
 
-      if (!user) {
-        return {
-          message: `Usuario con id ${id} no encontrado`,
-          status: 404,
-          result: null,
-        };
-      }
+			return {
+				result: savedUser,
+				message: 'User created successfully, but welcome email could not be sent',
+			};
+		}
+	}
 
-      return {
-        message: 'Usuario encontrado',
-        status: 200,
-        result: user,
-      };
-    } catch (error) {
-      return {
-        message: error instanceof Error ? error.message : 'Error desconocido',
-        status: 500,
-        result: null,
-      };
-    }
-  }
+
 
 
 }

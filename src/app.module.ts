@@ -22,6 +22,10 @@ import { ControlStripModule } from './modules/bus-control/control-strip/control-
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { AppLoggerModule } from './common/logger/app-logger.module';
 import { LoggerMiddleware } from './common/logger/app-logger.middleware';
+import { JwtModule } from '@nestjs/jwt';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { AppConfigService } from './config/config.service';
+import { getmailsConfig } from './shared/mails/mails.config';
 
 
 @Module({
@@ -50,6 +54,14 @@ import { LoggerMiddleware } from './common/logger/app-logger.middleware';
     GetTrackGpsModule,
     ControlStripModule,
     TransactionsModule,
+    JwtModule.register({
+      global: true,
+    }),
+    MailerModule.forRootAsync({
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: getmailsConfig,
+    }),
   ],
   controllers: [],
 })

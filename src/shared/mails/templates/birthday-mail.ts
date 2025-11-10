@@ -189,7 +189,7 @@ export class BirthdayMail {
               © 2025 DIGO S.A.S.
               <br />Quito, Distrito Metropolitano, Av. República del Salvador
               406 y Moscú<br /><a
-                href="https://www.subly.sh"
+                href="https://www.simtra.app"
                 style="color: #1e40af; text-decoration: none"
                 >www.subly.digoai.app</a
               >

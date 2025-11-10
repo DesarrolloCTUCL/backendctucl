@@ -16,6 +16,8 @@ import * as Joi from 'joi';
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
         JWT_SECRET: Joi.string().min(10).required(),
+        EMAIL_USER: Joi.string().min(15).required(),
+        EMAIL_PASSWORD: Joi.string().min(8).required(),
       }),
     }),
   ],
