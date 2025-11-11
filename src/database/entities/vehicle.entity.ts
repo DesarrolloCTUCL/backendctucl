@@ -22,10 +22,10 @@ export enum Grupo {
 }
 
 export enum CompanyEnum {
-    mayo24 = '24mayo',
-    cuxibamba = 'cuxibamba',
-    urbasur = 'urbasur',
-    urbaexpress = 'urbaexpress',
+  mayo24 = '24mayo',
+  cuxibamba = 'cuxibamba',
+  urbasur = 'urbasur',
+  urbaexpress = 'urbaexpress',
 }
 
 @Entity('vehicles')
@@ -35,30 +35,6 @@ export class Vehicle {
 
   @Column({ unique: true })
   register: number;
-
-  @Column()
-  partner: string;
-
-  @ManyToOne(() => User, (user) => user.vehicles, { nullable: true })
-  @JoinColumn({ name: 'user_id' })
-  user?: User;
-
-
-  @Column({
-      type: 'enum',
-      enum: CompanyEnum,
-  })
-  company: CompanyEnum;
-
-  @ManyToOne(() => Company, (company) => company.vehicles, { nullable: true })
-  @JoinColumn({ name: 'company_id' })
-  company_id?: Company;
-
-  @Column({ nullable: true })
-  dni?: string;
-
-  @Column({ nullable: true })
-  phone?: string;
 
   @Column({ nullable: true })
   plate?: string;
@@ -79,6 +55,19 @@ export class Vehicle {
   @Column({ type: 'boolean', default: true })
   status: boolean;
 
+  @Column({nullable:true})
+  line:string;
+  
+  //relaciones
+  
+  @ManyToOne(() => User, (user) => user.vehicles, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
+
+  @ManyToOne(() => Company, (company) => company.vehicles, { nullable: true })
+  @JoinColumn({ name: 'company_id' })
+  company?: Company;
+  
   @OneToMany(() => PassengerCounter, (counter) => counter.bus)
   counter: PassengerCounter[];
 }

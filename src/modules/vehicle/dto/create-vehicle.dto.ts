@@ -35,7 +35,7 @@ export class CreateVehicleDto {
 
   @IsInt()
   @ApiProperty({ description: 'Empresa a la que pertenece el vehículo', example:1 })
-  company: CompanyEnum;
+  company_id: number;
 
   @IsString()
   @ApiProperty({ description: 'Placa del bus', example: 'ABC-1234' })

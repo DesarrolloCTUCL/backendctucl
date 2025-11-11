@@ -68,6 +68,9 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true })
 	profile: string;
 
+  @Column({ type: 'json', nullable: true })
+  shared_vehicles: { id: number; register: number }[] | null;
+
   @Column({ default: true })
   status: boolean;
 

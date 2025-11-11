@@ -8,12 +8,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppLoggerService } from 'src/common/logger/app-logger.service';
 import { MailsModule } from 'src/shared/mails/mails.module';
 import { AppConfigModule } from 'src/config/config.module';
+import { Vehicle } from 'src/database/entities/vehicle.entity';
 
 
 
 
 @Module({
-  imports:[DatabaseModule,TypeOrmModule.forFeature([User,Company]),MailsModule,AppConfigModule],
+  imports:[DatabaseModule,TypeOrmModule.forFeature([User,Company,Vehicle]),MailsModule,AppConfigModule],
   controllers: [UsersController],
   providers: [UsersService,AppLoggerService],
   exports:[UsersService]

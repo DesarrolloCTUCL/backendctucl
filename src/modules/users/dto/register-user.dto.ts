@@ -79,4 +79,9 @@ export class RegisterUserDto {
   @IsOptional()
   @IsNumber()
   company_id?: number;
+
+  @ApiPropertyOptional({ description: 'Registro del vehiculo si es propietario de alguno', example: 1539 })
+  @IsOptional()
+  @IsNumber()
+  vehicle?: number;
 }

@@ -1,20 +1,19 @@
-export class WelcomeMailFromAdmin {
+export class WelcomeMailRegister {
   private name: string;
   private email: string;
-  private password: string;
   private business_name: string;
   private business_logo: string;
+
 
   constructor(
     name: string,
     email: string,
-    password: string,
     business_name: string,
     business_logo: string,
   ) {
     this.name = name;
     this.email = email;
-    this.password = password;
+
     this.business_name = business_name;
     this.business_logo = business_logo;
   }
@@ -145,12 +144,6 @@ export class WelcomeMailFromAdmin {
                         <td style="padding: 5px 0">
                           ${this.email}
                         </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 5px 0">
-                          <strong>Contraseña:</strong>
-                        </td>
-                        <td style="padding: 5px 0">${this.password}</td>
                       </tr>
                     </table>
 

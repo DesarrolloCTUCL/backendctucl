@@ -24,13 +24,15 @@ export class VehicleService {
         @InjectRepository(Itinerary)
         private readonly itineraryRepository: Repository<Itinerary>,
     ) { }
+
+
     async create(createVehicle: CreateVehicleDto) {
         const company = await this.companyRepository.findOne({
-            where: { id: createVehicle.user_id },
+            where: { id: createVehicle.company_id },
         });
 
         if (!company) {
-            throw new Error('La empresa no existe');
+            throw new NotFoundException(`The Company with ${createVehicle.company_id} does not exists`);
         }
 
         let user: User | undefined = undefined;
@@ -39,17 +41,16 @@ export class VehicleService {
                 where: { id: createVehicle.user_id },
             });
             if (!foundUser) {
-                throw new Error('El usuario no existe');
+                throw new NotFoundException(`The User with ${createVehicle.user_id} does not exists`);
             }
             user = foundUser;
         }
 
         const vehicleData = this.vehicleRepository.create({
             ...createVehicle,
-            company: createVehicle.company,
+            company: company,
             user: user,
             plate: createVehicle.plate.toUpperCase(),
-            partner: createVehicle.partner.toUpperCase()
         });
 
         const vehicle = await this.vehicleRepository.save(vehicleData);
@@ -62,53 +63,40 @@ export class VehicleService {
         };
     }
 
-    async findAll(): Promise<Vehicle[]> {
-        return this.vehicleRepository.find();
-    }
-    
-   
-
     async findCountersById(id: number, date: string): Promise<any[]> {
-    const [year, month, day] = date.split('-').map(Number);
-    const startDate = new Date(year, month - 1, day, 0, 0, 0, 0);
-    const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+        const [year, month, day] = date.split('-').map(Number);
+        const startDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+        const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
 
-    const vehicle = await this.vehicleRepository.findOneBy({ id });
-    if (!vehicle) {
-        throw new NotFoundException(`Vehicle with ID ${id} not found`);
-    }
-
-    const results = await this.passengerRepository.find({
-        where: {
-        bus: vehicle,
-        timestamp: Between(startDate, endDate),
-        },
-    });
-
-    if (!results || results.length === 0) {
-        throw new NotFoundException(
-        `No passenger counters found for vehicle ID ${id} on ${date}`,
-        );
-    }
-
-    // Convertir timestamp a hora local (ejemplo: 'America/Lima' o tu zona horaria)
-    return results.map((r) => ({
-        ...r,
-        timestamp: moment(r.timestamp).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
-    }));
-    }
-
-
-    async findOne(id: number): Promise<Vehicle> {
-        const result = await this.vehicleRepository.findOneBy({ register: id });
-        if (!result) {
+        const vehicle = await this.vehicleRepository.findOneBy({ id });
+        if (!vehicle) {
             throw new NotFoundException(`Vehicle with ID ${id} not found`);
         }
-        return result;
+
+        const results = await this.passengerRepository.find({
+            where: {
+                bus: vehicle,
+                timestamp: Between(startDate, endDate),
+            },
+        });
+
+        if (!results || results.length === 0) {
+            throw new NotFoundException(
+                `No passenger counters found for vehicle ID ${id} on ${date}`,
+            );
+        }
+
+        // Convertir timestamp a hora local (ejemplo: 'America/Lima' o tu zona horaria)
+        return results.map((r) => ({
+            ...r,
+            timestamp: moment(r.timestamp).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
+        }));
     }
 
+
+
     async registerCounter(createCounter: CreatePassengerCounterDto) {
-  
+
         const vehicle = await this.vehicleRepository.findOne({
             where: { register: createCounter.bus, status: true },
         });
@@ -120,14 +108,14 @@ export class VehicleService {
         let itinerary: Itinerary | null = null;
         if (createCounter.itinerary_id != null) {
             itinerary = await this.itineraryRepository.findOne({
-            where: { id: createCounter.itinerary_id },
+                where: { id: createCounter.itinerary_id },
             });
             if (!itinerary) {
-            throw new NotFoundException(`Itinerary with ID ${createCounter.itinerary_id} not found`);
+                throw new NotFoundException(`Itinerary with ID ${createCounter.itinerary_id} not found`);
             }
         }
 
-  
+
         const counter = this.passengerRepository.create({
             timestamp: createCounter.timestamp,
             bus: vehicle,
@@ -135,12 +123,32 @@ export class VehicleService {
             special: createCounter.special,
         });
 
- 
+
         const result = await this.passengerRepository.save(counter);
 
         return {
             message: 'Counter created successfully',
             result,
+        };
+    }
+
+
+    async assignVehicleToUser(register: number, user_id: number) {
+        const user = await this.userRepository.findOne({ where: { id: user_id, status: true } })
+        if (!user) {
+            throw new NotFoundException(`User With ID ${user_id}  not found`)
+        }
+        const vehicle = await this.vehicleRepository.findOne({ where: { status: true, register: register } })
+        if (!vehicle) {
+            throw new NotFoundException(`Vehicle With Register ${register}  not found`)
+        }
+
+        vehicle.user = user;
+
+        await this.vehicleRepository.save(vehicle);
+        return {
+            message: `Vehicle ${register} successfully assigned to User ${user_id}`,
+            result:vehicle,
         };
     }
 
