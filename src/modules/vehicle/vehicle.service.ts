@@ -75,8 +75,8 @@ export class VehicleService {
 
         const results = await this.passengerRepository.find({
             where: {
-                bus: vehicle,
-                timestamp: Between(startDate, endDate),
+                vehicle: vehicle,
+                created_at: Between(startDate, endDate),
             },
         });
 
@@ -89,7 +89,7 @@ export class VehicleService {
         // Convertir timestamp a hora local (ejemplo: 'America/Lima' o tu zona horaria)
         return results.map((r) => ({
             ...r,
-            timestamp: moment(r.timestamp).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
+            timestamp: moment(r.created_at).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
         }));
     }
 
@@ -98,37 +98,46 @@ export class VehicleService {
     async registerCounter(createCounter: CreatePassengerCounterDto) {
 
         const vehicle = await this.vehicleRepository.findOne({
-            where: { register: createCounter.bus, status: true },
+            where: { register: createCounter.register_vehicle, status: true },
         });
         if (!vehicle) {
-            throw new NotFoundException(`Vehicle with register ${createCounter.bus} not found`);
+            throw new NotFoundException(`Vehicle with register ${createCounter.register_vehicle} not found`);
         }
 
+        const today = new Date();
 
-        let itinerary: Itinerary | null = null;
-        if (createCounter.itinerary_id != null) {
-            itinerary = await this.itineraryRepository.findOne({
-                where: { id: createCounter.itinerary_id },
-            });
-            if (!itinerary) {
-                throw new NotFoundException(`Itinerary with ID ${createCounter.itinerary_id} not found`);
-            }
-        }
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
 
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
 
-        const counter = this.passengerRepository.create({
-            timestamp: createCounter.timestamp,
-            bus: vehicle,
-            itinerary: itinerary ?? undefined,
-            special: createCounter.special,
+        let lastCounter = await this.passengerRepository.findOne({
+            where: {
+                vehicle,
+                created_at: Between(startOfDay, endOfDay),
+            },
+            order: { created_at: 'DESC' },
         });
 
-
-        const result = await this.passengerRepository.save(counter);
+        if (!lastCounter) {
+            const newCounter = this.passengerRepository.create({
+            vehicle,
+            passengers: createCounter.passengers,
+            });
+            await this.passengerRepository.save(newCounter);
+            return {
+                message: 'Counter created successfully',
+                result: newCounter,
+            }
+        }
+        
+        lastCounter.passengers = lastCounter.passengers + createCounter.passengers
+        await this.passengerRepository.save(lastCounter)
 
         return {
-            message: 'Counter created successfully',
-            result,
+            message: 'Counter updated successfully',
+            result: lastCounter,
         };
     }
 
@@ -148,7 +157,7 @@ export class VehicleService {
         await this.vehicleRepository.save(vehicle);
         return {
             message: `Vehicle ${register} successfully assigned to User ${user_id}`,
-            result:vehicle,
+            result: vehicle,
         };
     }
 

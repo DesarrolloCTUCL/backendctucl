@@ -68,6 +68,6 @@ export class Vehicle {
   @JoinColumn({ name: 'company_id' })
   company?: Company;
   
-  @OneToMany(() => PassengerCounter, (counter) => counter.bus)
+  @OneToMany(() => PassengerCounter, (counter) => counter.vehicle)
   counter: PassengerCounter[];
 }
