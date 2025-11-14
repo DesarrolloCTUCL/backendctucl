@@ -7,6 +7,7 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ItineraryService } from './itinerary.service';
@@ -23,6 +24,28 @@ export class ItineraryController {
     return this.itineraryService.findAll();
   }
 
+  @Get('line/:line')
+  getByLine(@Param('line') line: string) {
+    return this.itineraryService.findByLine(line);
+  }
+
+  // ---------- NUEVOS ----------
+  @Post('bulk-update')
+  bulkUpdate(@Body() bulkDto: BulkUpdateItineraryDto) {
+    return this.itineraryService.bulkUpdate(bulkDto);
+  }
+
+  @Post('import-excel')
+  @UseInterceptors(FileInterceptor('file'))
+  importExcel(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No se subió archivo');
+    }
+
+    return this.itineraryService.importFromExcel(file.buffer);
+  }
+
+  // ⚠️ IMPORTANTE: ESTA RUTA SIEMPRE AL FINAL ⚠️
   @Get(':id')
   getOne(@Param('id') id: string) {
     return this.itineraryService.findOne(id);
@@ -34,31 +57,5 @@ export class ItineraryController {
     @Body() updateDto: UpdateItineraryDto,
   ) {
     return this.itineraryService.update(id, updateDto);
-  }
-
-  @Get('line/:line')
-  getByLine(@Param('line') line: string) {
-    return this.itineraryService.findByLine(line);
-  }
-
-  // ---------- NUEVOS ----------
-  /**
-   * Bulk update con JSON (útil para pruebas o frontend que procese Excel).
-   */
-  @Post('bulk-update')
-  bulkUpdate(@Body() bulkDto: BulkUpdateItineraryDto) {
-    return this.itineraryService.bulkUpdate(bulkDto);
-  }
-
-  /**
-   * Importación directa de Excel desde frontend (form-data con archivo).
-   */
-  @Post('import-excel')
-  @UseInterceptors(FileInterceptor('file'))
-  importExcel(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new Error('No se subió archivo');
-    }
-    return this.itineraryService.importFromExcel(file.buffer);
   }
 }
