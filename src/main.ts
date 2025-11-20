@@ -49,14 +49,14 @@ async function bootstrap() {
     }),
   );
 
-  // ✅ Interceptores globales (orden correcto)
-  app.useGlobalInterceptors(
-    new LoggingInterceptor(),
-    new ResponseInterceptor()
-  );
+  // // ✅ Interceptores globales (orden correcto)
+  // app.useGlobalInterceptors(
+  //   new LoggingInterceptor(),
+  //   new ResponseInterceptor()
+  // );
 
-  // ✅ Filtro global EXISTENTE
-  app.useGlobalFilters(new ErrorFilter());
+  // // ✅ Filtro global EXISTENTE
+  // app.useGlobalFilters(new ErrorFilter());
 
   const config = new DocumentBuilder()
     .setTitle('CTUCL SIMTRA API')

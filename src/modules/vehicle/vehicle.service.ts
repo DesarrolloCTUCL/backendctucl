@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
-import { Between, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vehicle } from 'src/database/entities/vehicle.entity';
 import { User } from 'src/database/entities/user.entity';
@@ -9,6 +9,8 @@ import { PassengerCounter } from 'src/database/entities/passenger-counter.entity
 import { CreatePassengerCounterDto } from './dto/create-counter.dto';
 import { Itinerary } from 'src/database/entities/itinerary.entity';
 import * as moment from 'moment-timezone';
+import { Schedule } from 'src/database/entities/schedule.entity';
+import { SharedVehicleDto } from './dto/shared-vehicle.dto';
 
 @Injectable()
 export class VehicleService {
@@ -23,6 +25,8 @@ export class VehicleService {
         private readonly companyRepository: Repository<Company>,
         @InjectRepository(Itinerary)
         private readonly itineraryRepository: Repository<Itinerary>,
+        @InjectRepository(Schedule)
+        private readonly scheduleRepository: Repository<Schedule>,
     ) { }
 
 
@@ -103,14 +107,29 @@ export class VehicleService {
         if (!vehicle) {
             throw new NotFoundException(`Vehicle with register ${createCounter.register_vehicle} not found`);
         }
-
         const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        const despacho = await this.scheduleRepository.findOne({
+			where: {
+                vehicle_id:1539,
+                date: Between(startOfDay, endOfDay),
+            },
+			order: { date: 'DESC' },
+		});
 
-        const startOfDay = new Date(today);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        const endOfDay = new Date(today);
-        endOfDay.setHours(23, 59, 59, 999);
+		if (!despacho) {
+			throw new NotFoundException(
+				`No itinerary found for vehicle ${createCounter.register_vehicle} on date ${today}`,
+			);
+		}
+        const itinerarios = await this.itineraryRepository.find({
+            where: { itinerary: despacho.itinerary, is_active: true, },
+            
+            order: { start_time: 'ASC' },
+            relations: ['shift'],
+        });
+        console.log(itinerarios)
 
         let lastCounter = await this.passengerRepository.findOne({
             where: {
@@ -158,6 +177,125 @@ export class VehicleService {
         return {
             message: `Vehicle ${register} successfully assigned to User ${user_id}`,
             result: vehicle,
+        };
+    }
+
+
+    async getVehiclesByUser(user_id: number) {
+        const user = await this.userRepository.findOne({ 
+            where: { id: user_id, status: true }
+        });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${user_id} not found`);
+        }
+        if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
+            throw new NotFoundException(`User with ID ${user_id} doesn't have vehicles`);
+        }
+        const vehicleRegisters = user.shared_vehicles.map(item => item.register);
+        const vehicles = await this.vehicleRepository.find({
+            where: {
+                register: In(vehicleRegisters),
+                status: true
+            }
+        });
+        return {
+            message: "Vehicles retrieved successfully",
+            result: vehicles
+        };
+    }
+
+    async sharedVehicle(sharedVehicleDto: SharedVehicleDto) {
+    // Validar que el usuario existe
+        const user = await this.userRepository.findOne({ 
+            where: { id: sharedVehicleDto.user_id, status: true }
+        });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} not found`);
+        }
+
+        // Validar que el vehículo existe
+        const vehicle = await this.vehicleRepository.findOne({
+            where: { register: sharedVehicleDto.register_vehicle, status: true }
+        });
+
+        if (!vehicle) {
+            throw new NotFoundException(`Vehicle with register ${sharedVehicleDto.register_vehicle} not found`);
+        }
+
+        // Inicializar shared_vehicles si está vacío o es null
+        if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
+            user.shared_vehicles = [{ id: vehicle.id, register: vehicle.register }];
+            await this.userRepository.save(user);
+            
+            return {
+                message: "The vehicle had no registration, 1 new one is added",
+                result: user
+            };
+        }
+
+        // Verificar si el vehículo ya está compartido
+        const vehicleExists = user.shared_vehicles.some(item => item.register === vehicle.register);
+        
+        if (vehicleExists) {
+            return {
+                message: `The vehicle with registration number ${vehicle.register} already exists`,
+                result: user
+            };
+        }
+
+        // Agregar el nuevo vehículo
+        user.shared_vehicles.push({ id: vehicle.id, register: vehicle.register });
+        await this.userRepository.save(user);
+
+        return {
+            message: `The vehicle with registration number ${vehicle.register} has been added`,
+            result: user
+        };
+    }
+
+
+    async deleteSharedVehicle(sharedVehicleDto: SharedVehicleDto) {
+    // Validar que el usuario existe
+        const user = await this.userRepository.findOne({ 
+            where: { id: sharedVehicleDto.user_id, status: true }
+        });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} not found`);
+        }
+
+        // Validar que el usuario tiene vehículos compartidos
+        if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
+            throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} doesn't have shared vehicles`);
+        }
+
+        // Verificar si el vehículo existe
+        const vehicleExists = user.shared_vehicles.some(
+            item => item.register === sharedVehicleDto.register_vehicle
+        );
+
+        if (!vehicleExists) {
+            throw new NotFoundException(
+                `Vehicle with register ${sharedVehicleDto.register_vehicle} is not shared with this user`
+            );
+        }
+
+        // Filtrar el vehículo (remover el que coincida)
+        user.shared_vehicles = user.shared_vehicles.filter(
+            item => item.register !== sharedVehicleDto.register_vehicle
+        );
+
+        // Guardar los cambios
+        await this.userRepository.save(user);
+
+        return {
+            message: `Vehicle with register ${sharedVehicleDto.register_vehicle} has been removed successfully`,
+            result: {
+                user_id: user.id,
+                shared_vehicles: user.shared_vehicles
+            }
         };
     }
 

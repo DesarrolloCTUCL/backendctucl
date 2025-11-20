@@ -46,7 +46,7 @@ export class User {
   lastname: string;
 
   @Column()
-  birthday: Date;
+  birthdate: Date;
 
   @CreateDateColumn({
 		type: 'timestamptz',

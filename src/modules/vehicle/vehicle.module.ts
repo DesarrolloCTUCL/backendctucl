@@ -7,9 +7,10 @@ import { Company } from 'src/database/entities/company.entity';
 import { Vehicle } from 'src/database/entities/vehicle.entity';
 import { PassengerCounter } from 'src/database/entities/passenger-counter.entity';
 import { Itinerary } from 'src/database/entities/itinerary.entity';
+import { Schedule } from 'src/database/entities/schedule.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Company, Vehicle,PassengerCounter,Itinerary])],
+  imports: [TypeOrmModule.forFeature([User, Company, Vehicle,PassengerCounter,Itinerary,Schedule])],
   controllers: [VehicleController],
   providers: [VehicleService],
   exports: [VehicleService]

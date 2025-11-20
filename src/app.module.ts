@@ -26,42 +26,37 @@ import { JwtModule } from '@nestjs/jwt';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { AppConfigService } from './config/config.service';
 import { getmailsConfig } from './shared/mails/mails.config';
+import { AuthModule } from './modules/auth/auth.module';
 
 
 @Module({
   imports: [
     AppConfigModule, // Importa el módulo de configuración
     AppLoggerModule,
-    UsersModule,
+    AuthModule,
     BusStationModule,
-    DatabaseModule,
-    CompanyModule,
-    VehicleModule,
     BusLineModule,
-    DeviceModule,
     BusStationLineModule,
+    CompanyModule,
+    ControlStripModule,
+    DeviceModule,
+    DatabaseModule,
+    DispatchDisplayModule,
+    GetTrackGpsModule,
     ItineraryModule,
+    JwtModule.register({global: true}),
+    logGPSTable,
+    LogGpsModule,
+    MqttModuleAWS,
+    MailerModule.forRootAsync({imports: [AppConfigModule],inject: [AppConfigService],useFactory: getmailsConfig,}),
+    RechargepointModule,
     ScheduleModule,
     ShiftModule,
-    ItineraryModule,
     ScheduleModule,
-    RechargepointModule,
-    DispatchDisplayModule,
-    MqttModuleAWS,
-    LogGpsModule,
-    logGPSTable,
     TrackGpsModule,
-    GetTrackGpsModule,
-    ControlStripModule,
     TransactionsModule,
-    JwtModule.register({
-      global: true,
-    }),
-    MailerModule.forRootAsync({
-      imports: [AppConfigModule],
-      inject: [AppConfigService],
-      useFactory: getmailsConfig,
-    }),
+    UsersModule,
+    VehicleModule,
   ],
   controllers: [],
 })

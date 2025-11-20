@@ -87,7 +87,7 @@ export class UsersService {
 				password: hashedPassword,
 				role: registerUserDto.role,
 				gender: registerUserDto.gender,
-				birthday: registerUserDto.birthday,
+				birthdate: registerUserDto.birthday,
 				company:company,
 				profile:registerUserDto.profile
 			});
@@ -147,6 +147,20 @@ export class UsersService {
 			};
 		}
 	}
+
+		async findByEmail(email: string) {
+			const user = await this.userRepository
+				.createQueryBuilder('user')
+				.addSelect('user.password')
+				.where('user.email = :email', { email })
+				.andWhere('user.status = :status', { status: true })
+				.getOne();
+
+			if (!user) {
+				throw new NotFoundException('User Not found');
+			}
+			return user;
+		}
 
 
 
