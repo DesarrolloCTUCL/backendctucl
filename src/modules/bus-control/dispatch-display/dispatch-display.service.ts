@@ -27,7 +27,7 @@ export class DispatchDisplayService {
   
     const despacho = await this.despachoRepo.findOne({
       where: {
-        vehicle_id,
+        vehicle: { id: vehicle_id },
         date: dateOnly,
       },
       order: { date: 'DESC' },
@@ -40,7 +40,10 @@ export class DispatchDisplayService {
     }
   
     const itinerarios = await this.itinerarioRepo.find({
-      where: { itinerary: despacho.itinerary, is_active: true, },
+      where: {
+        itinerary: despacho.itinerary.itinerary, // ← string correcto
+        is_active: true,
+      },
       
       order: { start_time: 'ASC' },
       relations: ['shift'],
@@ -108,7 +111,7 @@ export class DispatchDisplayService {
   
     return {
       vehicle_id,
-      itinerary: despacho.itinerary,
+      itinerary: despacho.itinerary.itinerary,
       itinerary_id: idItinerario,
       date: despacho.date,
       itinerarios: resultado,

@@ -8,11 +8,11 @@ export class CreateScheduleDto {
 
   @ApiProperty({ example: '2025-08-29', description: 'Fecha del despacho' })
   @IsDateString()
-  date: Date;
+  date: string;
 
   @ApiProperty({ example: 'Ruta Las Pitas - El Rosal', description: 'Itinerario del bus' })
   @IsString()
-  itinerary: string;
+  itinerary_id: number;
 
   @ApiProperty({ example: 12, description: 'ID de la línea' })
   @IsInt()

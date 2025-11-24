@@ -112,7 +112,7 @@ export class VehicleService {
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
         const despacho = await this.scheduleRepository.findOne({
 			where: {
-                vehicle_id:1539,
+                vehicle: { id: vehicle.id },
                 date: Between(startOfDay, endOfDay),
             },
 			order: { date: 'DESC' },
@@ -124,7 +124,11 @@ export class VehicleService {
 			);
 		}
         const itinerarios = await this.itineraryRepository.find({
-            where: { itinerary: despacho.itinerary, is_active: true, },
+            where: {
+                itinerary: despacho.itinerary.itinerary,  // ← el string
+                is_active: true,
+            }
+            ,
             
             order: { start_time: 'ASC' },
             relations: ['shift'],
