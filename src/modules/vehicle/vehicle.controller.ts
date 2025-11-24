@@ -58,11 +58,11 @@ export class VehicleController {
 	}
 
 
-	@Post('gps/:register')
-	updateVehicleGps(
-		@Param('register') register: number,
-		@Body() updateVehicleGpsDto: UpdateVehicleGpsDto
-	) {
-		return this.vehicleService.updateVehicleGps(+register,updateVehicleGpsDto)
-	}
+	//@Post('gps/:register')
+	//updateVehicleGps(
+	//	@Param('register') register: number,
+		//@Body() updateVehicleGpsDto: UpdateVehicleGpsDto
+	//) {
+	//	return this.vehicleService.updateVehicleGps(+register,updateVehicleGpsDto)
+	//}
 }

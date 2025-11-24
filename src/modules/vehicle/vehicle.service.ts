@@ -11,7 +11,6 @@ import { Itinerary } from 'src/database/entities/itinerary.entity';
 import * as moment from 'moment-timezone';
 import { Schedule } from 'src/database/entities/schedule.entity';
 import { SharedVehicleDto } from './dto/shared-vehicle.dto';
-import { UpdateVehicleGpsDto } from './dto/update-gps.dto';
 
 @Injectable()
 export class VehicleService {
@@ -113,7 +112,7 @@ export class VehicleService {
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
         const despacho = await this.scheduleRepository.findOne({
 			where: {
-                vehicle: { id: vehicle.id },
+                vehicle_id:1539,
                 date: Between(startOfDay, endOfDay),
             },
 			order: { date: 'DESC' },
@@ -125,7 +124,8 @@ export class VehicleService {
 			);
 		}
         const itinerarios = await this.itineraryRepository.find({
-            where: { itinerary: despacho.itinerary, is_active: true, },     
+            where: { itinerary: despacho.itinerary, is_active: true, },
+            
             order: { start_time: 'ASC' },
             relations: ['shift'],
         });
@@ -322,24 +322,6 @@ export class VehicleService {
                 user_id: user.id,
                 shared_vehicles: user.shared_vehicles
             }
-        };
-    }
-
-    async updateVehicleGps(register: number, updateVehicleGpsDto: UpdateVehicleGpsDto) {
-        const result = await this.vehicleRepository.update(
-            { register, status: true },
-            { 
-                latitude: updateVehicleGpsDto.latitude,
-                longitude: updateVehicleGpsDto.longitude 
-            }
-        );
-
-        if (result.affected === 0) {
-            throw new NotFoundException(`Vehicle with register ${register} not found`);
-        }
-
-        return {
-            message: "Latitude and longitude have been updated successfully"
         };
     }
 
