@@ -21,7 +21,7 @@ export class ScheduleService {
       // Verificar si ya existe un despacho para el mismo bus en esa fecha
       const existing = await this.scheduleRepository.findOne({
         where: {
-          vehicle_id: createScheduleDto.vehicle_id,
+          vehicle:{register:createScheduleDto.vehicle_id} ,
           date: scheduleDate,
         },
       });
@@ -34,8 +34,13 @@ export class ScheduleService {
   
       // Crear y guardar nuevo despacho
       const newSchedule = this.scheduleRepository.create({
-        ...createScheduleDto,
-        date: scheduleDate, // ✅ nos aseguramos que siempre vaya en formato Date
+        date: scheduleDate,
+        observations: createScheduleDto.observations,
+        vehicle:{id:createScheduleDto.vehicle_id},
+        itinerary:{id:createScheduleDto.itinerary_id},
+        busline:{id:createScheduleDto.line_id},
+        user:{id:createScheduleDto.user_id},
+        driver:{id:createScheduleDto.driver}
       });
   
       return await this.scheduleRepository.save(newSchedule);
@@ -71,9 +76,16 @@ export class ScheduleService {
   
     return await this.scheduleRepository
       .createQueryBuilder('schedule')
+      .leftJoinAndSelect('schedule.vehicle', 'vehicle')
+      .leftJoinAndSelect('schedule.itinerary', 'itinerary')
+      .leftJoinAndSelect('schedule.busline', 'busline')
+      .leftJoinAndSelect('schedule.driver', 'driver')
+      .leftJoinAndSelect('schedule.user', 'user')
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
+      .orderBy('schedule.id', 'ASC')
       .getMany();
   }
+  
   
   
 }
