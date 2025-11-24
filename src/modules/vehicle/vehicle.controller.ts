@@ -3,6 +3,7 @@ import { VehicleService } from './vehicle.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { CreatePassengerCounterDto } from './dto/create-counter.dto';
 import { SharedVehicleDto } from './dto/shared-vehicle.dto';
+import { UpdateVehicleGpsDto } from './dto/update-gps.dto';
 
 @Controller('vehicle')
 export class VehicleController {
@@ -54,5 +55,14 @@ export class VehicleController {
 		@Query('user_id') user_id: number
 	) {
 		return this.vehicleService.assignVehicleToUser(+register, +user_id)
+	}
+
+
+	@Post('gps/:register')
+	updateVehicleGps(
+		@Param('register') register: number,
+		@Body() updateVehicleGpsDto: UpdateVehicleGpsDto
+	) {
+		return this.vehicleService.updateVehicleGps(+register,updateVehicleGpsDto)
 	}
 }
