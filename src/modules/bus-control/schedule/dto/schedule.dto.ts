@@ -12,7 +12,7 @@ export class CreateScheduleDto {
 
   @ApiProperty({ example: 'Ruta Las Pitas - El Rosal', description: 'Itinerario del bus' })
   @IsString()
-  itinerary_id: number;
+  itinerary: string;
 
   @ApiProperty({ example: 12, description: 'ID de la línea' })
   @IsInt()

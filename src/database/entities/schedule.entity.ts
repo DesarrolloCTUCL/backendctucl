@@ -18,9 +18,8 @@ export class Schedule{
   @Column()
   date: Date;
 
-  @ManyToOne(()=>Itinerary,{eager:true})
-  @JoinColumn({name:'itinerary_id'})
-  itinerary: Itinerary;
+  @Column()
+  itinerary: string;
   
   @ManyToOne(()=>BusLine,{eager:true})
   @JoinColumn({name:'BusLine_id'})

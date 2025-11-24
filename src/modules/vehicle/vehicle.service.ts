@@ -125,12 +125,7 @@ export class VehicleService {
 			);
 		}
         const itinerarios = await this.itineraryRepository.find({
-            where: {
-                itinerary: despacho.itinerary.itinerary,  // ← el string
-                is_active: true,
-            }
-            ,
-            
+            where: { itinerary: despacho.itinerary, is_active: true, },     
             order: { start_time: 'ASC' },
             relations: ['shift'],
         });
