@@ -9,6 +9,7 @@ import {
 import { User } from './user.entity';
 import { Company } from './company.entity';
 import { PassengerCounter } from './passenger-counter.entity';
+import { BusLine } from './bus-line.entity';
 
 export enum OperationStatus {
   INACTIVE = 'inactivo',
@@ -55,8 +56,14 @@ export class Vehicle {
   @Column({ type: 'boolean', default: true })
   status: boolean;
 
-  @Column({nullable:true})
-  line:string;
+
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude: number;
+  
   
   //relaciones
   
@@ -67,6 +74,10 @@ export class Vehicle {
   @ManyToOne(() => Company, (company) => company.vehicles, { nullable: true })
   @JoinColumn({ name: 'company_id' })
   company?: Company;
+
+  @ManyToOne(() => BusLine, (line) => line.vehicles, { nullable: true })
+  @JoinColumn({ name: 'line_id' })
+  line?: BusLine;
   
   @OneToMany(() => PassengerCounter, (counter) => counter.vehicle)
   counter: PassengerCounter[];

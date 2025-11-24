@@ -32,7 +32,7 @@ export class PassengerCounter {
   updated_at: Date;
 
 
-  @ManyToOne(() => Vehicle, (vehicle) => vehicle.counter, { eager: true })
+  @ManyToOne(() => Vehicle, (vehicle) => vehicle.counter)
   @JoinColumn({ name: 'vehicle_id' })
   vehicle: Vehicle;
 

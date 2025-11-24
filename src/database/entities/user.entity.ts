@@ -76,7 +76,7 @@ export class User {
 
   //relaciones
 
-  @ManyToOne(() => Company, (company) => company.users, { nullable: true, eager: true })
+  @ManyToOne(() => Company, (company) => company.users, { nullable: true })
   @JoinColumn({ name: 'company_id' })
   company?: Company;
 

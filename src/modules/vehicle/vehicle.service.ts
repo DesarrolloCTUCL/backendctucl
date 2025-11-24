@@ -197,6 +197,32 @@ export class VehicleService {
             where: {
                 register: In(vehicleRegisters),
                 status: true
+            },
+             relations: {
+                company: true,
+                user: true,
+                line:true
+            },
+            select: {
+                id: true,
+                register: true,
+                operation_status: true,
+                latitude:true,
+                longitude:true,
+                line:{
+                    id:true,
+                    name:true,
+                    number:true
+                },
+                company: {
+                    id: true,
+                    name: true
+                },
+                user: {
+                    id: true,
+                    name: true,
+                    lastname: true
+                }
             }
         });
         return {

@@ -7,6 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { BusLineStations } from './bus-station-line.entity';
+import { Vehicle } from './vehicle.entity';
 
 @Entity('bus_lines')
 export class BusLine {
@@ -33,4 +34,8 @@ export class BusLine {
 
   @OneToMany(() => BusLineStations, (busLineStation) => busLineStation.busLine)
   stationsRelation: BusLineStations[];
+
+
+  @OneToMany(() => Vehicle, (vehicle) => vehicle.line)
+  vehicles: Vehicle[];
 }
