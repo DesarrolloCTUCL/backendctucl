@@ -5,7 +5,8 @@ import * as mqtt from 'mqtt';
 import * as fs from 'fs';
 import { certsPath } from '../../../config/mqtt.config';
 import { LogGpsService } from './log_gps.service';
-import { TrackGpsService } from './trackgps.service'; // Ajusta la ruta si es diferente
+import { TrackGpsService } from './trackgps.service';
+import { VehicleService } from '../../vehicle/vehicle.service'; 
 
 @Injectable()
 export class MqttServiceAWS implements OnModuleInit {
@@ -14,7 +15,9 @@ export class MqttServiceAWS implements OnModuleInit {
 
   constructor(
     private readonly logGpsService: LogGpsService,
-    private readonly trackGpsService: TrackGpsService
+    private readonly trackGpsService: TrackGpsService,
+    private readonly vehiclesService: VehicleService 
+
   ) {}
 
   onModuleInit() {
@@ -96,7 +99,11 @@ export class MqttServiceAWS implements OnModuleInit {
             lng: data.lng,
             speed: data.speed,
           });
-        
+          await this.vehiclesService.updateLocationByDeviceId(
+            Number(data.device_id),
+            data.lat,
+            data.lng,
+          );
         }
       } catch (err) {
         console.error('❌ Error procesando mensaje MQTT:', err.message);
