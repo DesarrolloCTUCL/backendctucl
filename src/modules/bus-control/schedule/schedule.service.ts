@@ -72,7 +72,7 @@ export class ScheduleService {
     return await this.scheduleRepository
       .createQueryBuilder('schedule')
       .leftJoin('schedule.vehicle', 'vehicle')
-      .addSelect(['vehicle.register']) // 👈 solo este campo
+      .addSelect(['vehicle.id', 'vehicle.register'])
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
       .getMany();
   }
