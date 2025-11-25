@@ -10,15 +10,13 @@ export class DispatchDisplayController {
     @Param('idbus') idbus: string,
     @Query('date') date?: string,
   ) {
-    let formattedDate: string;
+    // Si no manda fecha, usa la actual
+    const formattedDate = date ?? new Date().toISOString().split('T')[0];
   
-    if (date) {
-      const [day, month, year] = date.split('/');
-      formattedDate = `${year}-${month}-${day}`; // Convertir a 'YYYY-MM-DD'
-    } else {
-      formattedDate = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
-    }
-  
-    return this.dispatchDisplayService.obtenerItinerariosDeBus(parseInt(idbus), formattedDate);
+    return this.dispatchDisplayService.obtenerItinerariosDeBus(
+      parseInt(idbus),
+      formattedDate
+    );
   }
+  
 }

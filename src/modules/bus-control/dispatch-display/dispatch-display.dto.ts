@@ -20,6 +20,7 @@ export class DispatchdisplayDTO {
 
 export class DispatchResponseDTO {
   vehicle_id: number;
+  vehicle_register: number; 
   itinerary_id: number | null;
   itinerary: string;
   date: Date | null;
