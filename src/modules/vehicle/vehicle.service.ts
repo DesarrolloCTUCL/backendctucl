@@ -324,7 +324,7 @@ export class VehicleService {
             }
         };
     }
-// 👇 AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE
+
 async updateLocationByDeviceId(device_id: number, lat: number, lng: number) {
     if (!device_id) {
         throw new BadRequestException("device_id no puede ser null");
