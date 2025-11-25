@@ -11,7 +11,6 @@ import { Itinerary } from 'src/database/entities/itinerary.entity';
 import * as moment from 'moment-timezone';
 import { Schedule } from 'src/database/entities/schedule.entity';
 import { SharedVehicleDto } from './dto/shared-vehicle.dto';
-import { UpdateVehicleGpsDto } from './dto/update-gps.dto';
 
 @Injectable()
 export class VehicleService {
@@ -113,7 +112,7 @@ export class VehicleService {
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
         const despacho = await this.scheduleRepository.findOne({
 			where: {
-                vehicle: { id: vehicle.id },
+                vehicle_id:1539,
                 date: Between(startOfDay, endOfDay),
             },
 			order: { date: 'DESC' },
@@ -125,11 +124,7 @@ export class VehicleService {
 			);
 		}
         const itinerarios = await this.itineraryRepository.find({
-            where: {
-                itinerary: despacho.itinerary.itinerary,  // ← el string
-                is_active: true,
-            }
-            ,
+            where: { itinerary: despacho.itinerary, is_active: true, },
             
             order: { start_time: 'ASC' },
             relations: ['shift'],
@@ -329,23 +324,30 @@ export class VehicleService {
             }
         };
     }
-
-    async updateVehicleGps(register: number, updateVehicleGpsDto: UpdateVehicleGpsDto) {
-        const result = await this.vehicleRepository.update(
-            { register, status: true },
-            { 
-                latitude: updateVehicleGpsDto.latitude,
-                longitude: updateVehicleGpsDto.longitude 
-            }
-        );
-
-        if (result.affected === 0) {
-            throw new NotFoundException(`Vehicle with register ${register} not found`);
-        }
-
-        return {
-            message: "Latitude and longitude have been updated successfully"
-        };
+// 👇 AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE
+async updateLocationByDeviceId(device_id: number, lat: number, lng: number) {
+    if (!device_id) {
+        throw new BadRequestException("device_id no puede ser null");
     }
+
+    // Aquí usamos register (campo real de tu BD)
+    const vehicle = await this.vehicleRepository.findOne({
+        where: { register: device_id }  
+    });
+
+    if (!vehicle) {
+        console.warn(`⚠️ No existe vehículo con register = ${device_id}`);
+        return;
+    }
+
+    vehicle.latitude = lat;
+    vehicle.longitude = lng;
+
+    await this.vehicleRepository.save(vehicle);
+
+    console.log(
+        `🚍 Vehículo ${vehicle.register} actualizado → lat:${lat}, lng:${lng}`
+    );
+}
 
 }
