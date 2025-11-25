@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException,HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { hash } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/database/entities/user.entity';
@@ -6,8 +6,6 @@ import { Repository } from 'typeorm';
 import { Company } from 'src/database/entities/company.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { AppConfigService } from 'src/config/config.service';
-import { AccountType } from 'src/common/enum/account-type.enum';
-import { WelcomeMailFromAdmin } from 'src/shared/mails/templates/welcome-mail-from-admin';
 import { WelcomeMailRegister } from 'src/shared/mails/templates/welcome-register';
 import { MailsService } from 'src/shared/mails/mails.service';
 import { AppLoggerService } from 'src/common/logger/app-logger.service';
@@ -148,21 +146,33 @@ export class UsersService {
 		}
 	}
 
-		async findByEmail(email: string) {
-			const user = await this.userRepository
-				.createQueryBuilder('user')
-				.addSelect('user.password')
-				.where('user.email = :email', { email })
-				.andWhere('user.status = :status', { status: true })
-				.getOne();
+	async findByEmail(email: string) {
+		const user = await this.userRepository
+			.createQueryBuilder('user')
+			.addSelect('user.password')
+			.where('user.email = :email', { email })
+			.andWhere('user.status = :status', { status: true })
+			.getOne();
 
-			if (!user) {
-				throw new NotFoundException('User Not found');
-			}
-			return user;
+		if (!user) {
+			throw new NotFoundException('User Not found');
 		}
+		return user;
+	}
 
+	async getUsers(page = 1, limit = 10) {
+		const users = await this.userRepository.findAndCount({
+			 	where: {status:true },
+				skip: (page - 1) * limit,
+				take: limit,
+				order: { created_at: 'DESC' }
+		})
 
+		return{
+			message:'users retreived sucessfully',
+			result:users
+		}
+	}
 
 
 }

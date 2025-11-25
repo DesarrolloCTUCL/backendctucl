@@ -63,6 +63,10 @@ async function bootstrap() {
     .setDescription('Api para el sistema SIMTRA de control de flota y gestion del consorcio')
     .setVersion('1.0')
     .addTag('API')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'access-token',
+    )
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
