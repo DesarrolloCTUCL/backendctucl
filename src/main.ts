@@ -50,13 +50,13 @@ async function bootstrap() {
   );
 
   // // ✅ Interceptores globales (orden correcto)
-  // app.useGlobalInterceptors(
-  //   new LoggingInterceptor(),
-  //   new ResponseInterceptor()
-  // );
+   app.useGlobalInterceptors(
+     new LoggingInterceptor(),
+     new ResponseInterceptor()
+   );
 
   // // ✅ Filtro global EXISTENTE
-  // app.useGlobalFilters(new ErrorFilter());
+   app.useGlobalFilters(new ErrorFilter());
 
   const config = new DocumentBuilder()
     .setTitle('CTUCL SIMTRA API')
