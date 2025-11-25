@@ -66,14 +66,17 @@ export class ScheduleService {
     return result;
   }
 
-  async findByExactDate(date: Date): Promise<Schedule[]> {
+  async findByExactDate(date: Date): Promise<any[]> {
     const dateOnly = date.toISOString().split('T')[0];
   
     return await this.scheduleRepository
       .createQueryBuilder('schedule')
+      .leftJoin('schedule.vehicle', 'vehicle')
+      .addSelect(['vehicle.register']) // 👈 solo este campo
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
       .getMany();
   }
+  
   
   
 }
