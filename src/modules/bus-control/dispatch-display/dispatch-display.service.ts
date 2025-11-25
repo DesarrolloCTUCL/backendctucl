@@ -27,7 +27,7 @@ export class DispatchDisplayService {
   
     const despacho = await this.despachoRepo.findOne({
       where: {
-        vehicle_id,
+        vehicle: { id: vehicle_id },
         date: dateOnly,
       },
       order: { date: 'DESC' },

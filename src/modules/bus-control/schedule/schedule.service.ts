@@ -21,7 +21,7 @@ export class ScheduleService {
       // Verificar si ya existe un despacho para el mismo bus en esa fecha
       const existing = await this.scheduleRepository.findOne({
         where: {
-          vehicle_id: createScheduleDto.vehicle_id,
+          vehicle:{register:createScheduleDto.vehicle_id} ,
           date: scheduleDate,
         },
       });

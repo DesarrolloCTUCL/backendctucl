@@ -1,14 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColumn,ManyToOne,JoinColumn } from 'typeorm';
 import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import {Vehicle} from './vehicle.entity';
+
 
 @Entity('schedule')
 export class Schedule{
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  vehicle_id: number;
+  @ManyToOne(()=>Vehicle,{eager:true})
+  @JoinColumn({name:'vehicle_id'})
+  vehicle: Vehicle;
+
 
   @Column()
   date: Date;

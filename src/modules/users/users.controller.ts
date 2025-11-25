@@ -1,10 +1,9 @@
 import { Controller,Post, Body, Get, UseGuards, Query} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
-
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
