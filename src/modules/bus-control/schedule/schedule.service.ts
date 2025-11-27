@@ -21,7 +21,7 @@ export class ScheduleService {
       // Verificar si ya existe un despacho para el mismo bus en esa fecha
       const existing = await this.scheduleRepository.findOne({
         where: {
-          vehicle_id: createScheduleDto.vehicle_id,
+          vehicle: { id: createScheduleDto.vehicle_id },
           date: scheduleDate,
         },
       });
@@ -35,8 +35,10 @@ export class ScheduleService {
       // Crear y guardar nuevo despacho
       const newSchedule = this.scheduleRepository.create({
         ...createScheduleDto,
-        date: scheduleDate, // ✅ nos aseguramos que siempre vaya en formato Date
+        date: scheduleDate,
+        vehicle: { id: createScheduleDto.vehicle_id } // 👈 AQUÍ SE ASIGNA LA RELACIÓN
       });
+      
   
       return await this.scheduleRepository.save(newSchedule);
   
@@ -66,14 +68,15 @@ export class ScheduleService {
     return result;
   }
 
-  async findByExactDate(date: Date): Promise<Schedule[]> {
+  async findByExactDate(date: Date): Promise<any[]> {
     const dateOnly = date.toISOString().split('T')[0];
   
     return await this.scheduleRepository
       .createQueryBuilder('schedule')
+      .leftJoin('schedule.vehicle', 'vehicle')
+      .addSelect(['vehicle.id', 'vehicle.register'])
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
       .getMany();
   }
-  
   
 }

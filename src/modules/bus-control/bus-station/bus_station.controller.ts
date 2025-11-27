@@ -1,8 +1,13 @@
 import { Controller, UseGuards, Post, Body, Get, Param, HttpStatus, HttpException } from '@nestjs/common';
-
 import { BusStationService } from './bus_station.service';
 import { CreateBusStationDto } from './dto/create-bus-station.dto';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { Public } from 'src/common/decorators/public.decorator';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('bus-station')
 export class BusStationController {
   constructor(private readonly bus_station_service: BusStationService) {}

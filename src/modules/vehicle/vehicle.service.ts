@@ -112,7 +112,7 @@ export class VehicleService {
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
         const despacho = await this.scheduleRepository.findOne({
 			where: {
-                vehicle_id:1539,
+                vehicle: { id: 1539 },
                 date: Between(startOfDay, endOfDay),
             },
 			order: { date: 'DESC' },

@@ -6,8 +6,13 @@ export class LogGPSController {
   constructor(private readonly shiftService: LogGPSService) {}
 
   @Get()
-  getAll() {
-    return this.shiftService.findAll();
+  async getAll() {
+    const data= await this.shiftService.findAll();
+
+    return {
+      status: 'success',
+      data: data,
+    };
   }
 
   @Get(':id')
