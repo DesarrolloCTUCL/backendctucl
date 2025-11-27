@@ -10,6 +10,7 @@ import { WelcomeMailRegister } from 'src/shared/mails/templates/welcome-register
 import { MailsService } from 'src/shared/mails/mails.service';
 import { AppLoggerService } from 'src/common/logger/app-logger.service';
 import { Vehicle } from 'src/database/entities/vehicle.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -172,6 +173,12 @@ export class UsersService {
 			message:'users retreived sucessfully',
 			result:users
 		}
+	}
+
+
+	async updateUser(updateUserDto:UpdateUserDto,user_id:number){
+
+		
 	}
 
 

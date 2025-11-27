@@ -1,9 +1,10 @@
-import { Controller,Post, Body, Get, UseGuards, Query} from '@nestjs/common';
+import { Controller,Post, Body, Get, UseGuards, Query, Patch, Param} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 
 @ApiBearerAuth()
@@ -31,6 +32,12 @@ export class UsersController {
 		@Query('limit') limit?: number,
 	){
 		return await this.usersService.getUsers(page , limit)
+	}
+
+	@Patch('/:user_id')
+	@ApiOperation({summary:'actualizar usuarios'})
+	async updateUser(@Body() updateUserDto:UpdateUserDto, @Param('id') id: number){
+		return await this.usersService.updateUser(updateUserDto,+id);
 	}
 
 

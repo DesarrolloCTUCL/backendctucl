@@ -325,29 +325,24 @@ export class VehicleService {
         };
     }
 
-async updateLocationByDeviceId(device_id: number, lat: number, lng: number) {
-    if (!device_id) {
-        throw new BadRequestException("device_id no puede ser null");
+    async updateLocationByDeviceId(device_id: number, lat: number, lng: number) {
+            if (!device_id) {
+                throw new BadRequestException("device_id no puede ser null");
+            }
+
+            // Aquí usamos register (campo real de tu BD)
+            const vehicle = await this.vehicleRepository.findOne({
+                where: { register: device_id }  
+            });
+
+            if (!vehicle) {
+                console.warn(`⚠️ No existe vehículo con register = ${device_id}`);
+                return;
+            }
+
+            vehicle.latitude = lat;
+            vehicle.longitude = lng;
+            await this.vehicleRepository.save(vehicle);
     }
-
-    // Aquí usamos register (campo real de tu BD)
-    const vehicle = await this.vehicleRepository.findOne({
-        where: { register: device_id }  
-    });
-
-    if (!vehicle) {
-        console.warn(`⚠️ No existe vehículo con register = ${device_id}`);
-        return;
-    }
-
-    vehicle.latitude = lat;
-    vehicle.longitude = lng;
-
-    await this.vehicleRepository.save(vehicle);
-
-    console.log(
-        `🚍 Vehículo ${vehicle.register} actualizado → lat:${lat}, lng:${lng}`
-    );
-}
 
 }
