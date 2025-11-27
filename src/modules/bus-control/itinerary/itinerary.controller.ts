@@ -16,46 +16,73 @@ import { BulkUpdateItineraryDto } from './dto/update-itinerary-excel.dto';
 
 @Controller('itineraries')
 export class ItineraryController {
-  constructor(private readonly itineraryService: ItineraryService) {}
+  constructor(private readonly itineraryService: ItineraryService) { }
 
-  // ---------- EXISTENTES ----------
+
   @Get()
-  getAll() {
-    return this.itineraryService.findAll();
+  async getAll() {
+    const data = await this.itineraryService.findAll();
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   @Get('line/:line')
-  getByLine(@Param('line') line: string) {
-    return this.itineraryService.findByLine(line);
+  async getByLine(@Param('line') line: string) {
+    const data = await this.itineraryService.findByLine(line);
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
-  // ---------- NUEVOS ----------
+
   @Post('bulk-update')
-  bulkUpdate(@Body() bulkDto: BulkUpdateItineraryDto) {
-    return this.itineraryService.bulkUpdate(bulkDto);
+  async bulkUpdate(@Body() bulkDto: BulkUpdateItineraryDto) {
+    const data = await this.itineraryService.bulkUpdate(bulkDto);
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   @Post('import-excel')
   @UseInterceptors(FileInterceptor('file'))
-  importExcel(@UploadedFile() file: Express.Multer.File) {
+  async importExcel(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No se subió archivo');
     }
+    const data = await this.itineraryService.importFromExcel(file.buffer)
 
-    return this.itineraryService.importFromExcel(file.buffer);
+    return {
+      status: 'success',
+      data,
+    };
   }
 
-  // ⚠️ IMPORTANTE: ESTA RUTA SIEMPRE AL FINAL ⚠️
   @Get(':id')
-  getOne(@Param('id') id: string) {
-    return this.itineraryService.findOne(id);
+  async getOne(@Param('id') id: string) {
+    const data = await this.itineraryService.findOne(id);
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   @Put(':id')
-  updateItinerary(
+  async updateItinerary(
     @Param('id') id: string,
     @Body() updateDto: UpdateItineraryDto,
   ) {
-    return this.itineraryService.update(id, updateDto);
+    const data = await this.itineraryService.update(id, updateDto);
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 }
