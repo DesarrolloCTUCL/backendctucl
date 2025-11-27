@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query,ParseIntPipe  } from '@nestjs/common';
 import { LogGPSService } from './log-gps.service';
+import { filter } from 'rxjs';
 
 @Controller('logGPS')
 export class LogGPSController {
@@ -16,22 +17,28 @@ export class LogGPSController {
   }
 
   @Get(':id')
-  getOne(@Param('id') id: number) {
-    return this.shiftService.findOne(id);
+  async getOne(@Param('id') id: number) {
+
+    const data= await this.shiftService.findOne(id)
+    return {
+      status: 'success',
+      data: data,
+    };
   }
+
   @Get('/filter/strict')
-  getFilteredStrict(
+  async getFilteredStrict(
     @Query('vehicle_id', ParseIntPipe) vehicle_id: number,
     @Query('shift_id', ParseIntPipe) shift_id: number,
     @Query('start_datetime') start_datetime: string,
     @Query('end_datetime') end_datetime: string,
   ) {
-    return this.shiftService.findByVehicleShiftAndDatetimeRange(
-      vehicle_id,
-      shift_id,
-      start_datetime,
-      end_datetime,
-    );
+    const data= await this.shiftService.findByVehicleShiftAndDatetimeRange(vehicle_id,shift_id,start_datetime,end_datetime);
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
 }
