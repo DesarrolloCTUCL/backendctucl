@@ -9,9 +9,13 @@ export class TrackGpsController {
   @Get('by-range')
   async getTrackByRange(@Query() query: GetTrackGpsDto) {
     const { device_id, start, end } = query;
-
-    // Aquí NO usamos new Date(), usamos strings directamente
-    return await this.trackGpsService.findByDeviceAndRange(device_id, start, end);
+    const data = await this.trackGpsService.findByDeviceAndRange(
+      device_id, start, end,
+    );
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   @Get('last')
