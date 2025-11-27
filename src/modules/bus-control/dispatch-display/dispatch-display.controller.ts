@@ -12,11 +12,15 @@ export class DispatchDisplayController {
   ) {
     // Si no manda fecha, usa la actual
     const formattedDate = date ?? new Date().toISOString().split('T')[0];
-  
-    return this.dispatchDisplayService.obtenerItinerariosDeBus(
+    const data =await this.dispatchDisplayService.obtenerItinerariosDeBus(
       parseInt(idbus),
       formattedDate
-    );
+    )
+    
+    return {
+      status: 'success',
+      data: data,
+    };
   }
   
 }

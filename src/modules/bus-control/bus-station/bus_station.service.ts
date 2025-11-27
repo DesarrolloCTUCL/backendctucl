@@ -35,10 +35,6 @@ export class BusStationService {
 
   }
 
-
-
-
-
   async findAll(): Promise<BusStation[]> {
     return this.busStationRepository.find();
   }
