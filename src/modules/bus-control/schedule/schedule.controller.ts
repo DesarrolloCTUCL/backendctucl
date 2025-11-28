@@ -1,4 +1,4 @@
-import { Controller, Get, Param,Post,Body, Query } from '@nestjs/common';
+import { Controller, Get, Param,Post,Body, Query,Delete } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { Schedule } from './../../../database/entities/schedule.entity';
 import { BadRequestException } from '@nestjs/common';
@@ -32,15 +32,25 @@ export class ScheduleController {
   }
   
   
-  @Get(':id')
-  getOne(@Param('id') id: number) {
-    return this.scheduleService.findOne(id);
-  }
 
   @Post()
   async create(@Body() createScheduleDto: CreateScheduleDto): Promise<Schedule> {
     return this.scheduleService.create(createScheduleDto);
   }
 
+  @Delete('delete-by-vehicle-date')
+  async deleteByVehicleAndDate(
+    @Query('vehicle_id') vehicle_id: string,
+    @Query('date') date: string,
+  ) {
+    if (!vehicle_id || !date) {
+      throw new BadRequestException('vehicle_id y date son requeridos');
+    }
+
+    return await this.scheduleService.deleteByVehicleAndDate(
+      Number(vehicle_id),
+      date
+    );
+  }
 
 }

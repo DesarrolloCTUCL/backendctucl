@@ -78,13 +78,7 @@ export class ScheduleService {
     return this.scheduleRepository.find();
   }
 
-  async findOne(id: number): Promise<Schedule> {
-    const result = await this.scheduleRepository.findOneBy({ id });
-    if (!result) {
-      throw new NotFoundException(`Itinerary with ID ${id} not found`);
-    }
-    return result;
-  }
+
 
   async findByExactDate(date: Date): Promise<any[]> {
     const dateOnly = date.toISOString().split('T')[0];
@@ -96,5 +90,30 @@ export class ScheduleService {
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
       .getMany();
   }
+
+async deleteByVehicleAndDate(vehicle_id: number, date: string): Promise<{ message: string }> {
+  // Usar la fecha tal como viene en el query, sin new Date()
+  const dateOnly = date.split('T')[0]; // por si envían ISO
+
+  const schedule = await this.scheduleRepository
+    .createQueryBuilder('schedule')
+    .leftJoin('schedule.vehicle', 'vehicle')
+    .where('vehicle.id = :vehicle_id', { vehicle_id })
+    .andWhere('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
+    .getOne();
+
+  if (!schedule) {
+    throw new NotFoundException(
+      `No existe un itinerario para el vehículo ${vehicle_id} en la fecha ${dateOnly}`
+    );
+  }
+
+  await this.scheduleRepository.remove(schedule);
+
+  return {
+    message: `Itinerario del vehículo ${vehicle_id} en la fecha ${dateOnly} eliminado correctamente`
+  };
+}
+
   
 }
