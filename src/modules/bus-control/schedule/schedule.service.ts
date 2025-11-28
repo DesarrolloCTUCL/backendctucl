@@ -115,5 +115,25 @@ async deleteByVehicleAndDate(vehicle_id: number, date: string): Promise<{ messag
   };
 }
 
+async findByVehicleAndDate(vehicle_id: number, date: string): Promise<any> {
+  const dateOnly = date.split('T')[0]; // Por si viene con hora
   
+  const schedule = await this.scheduleRepository
+    .createQueryBuilder('schedule')
+    .leftJoinAndSelect('schedule.vehicle', 'vehicle')
+    .leftJoinAndSelect('schedule.user', 'user')
+    .leftJoinAndSelect('schedule.driverUser', 'driverUser')
+    .where('vehicle.id = :vehicle_id', { vehicle_id })
+    .andWhere('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
+    .getOne();
+
+  if (!schedule) {
+    throw new NotFoundException(
+      `No existe un itinerario para el vehículo ${vehicle_id} en la fecha ${dateOnly}`,
+    );
+  }
+
+  return schedule;
+}
+
 }
