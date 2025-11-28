@@ -116,13 +116,12 @@ async deleteByVehicleAndDate(vehicle_id: number, date: string): Promise<{ messag
 }
 
 async findByVehicleAndDate(vehicle_id: number, date: string): Promise<any> {
-  const dateOnly = date.split('T')[0]; // Por si viene con hora
-  
+  const dateOnly = date.split('T')[0];
+
   const schedule = await this.scheduleRepository
     .createQueryBuilder('schedule')
-    .leftJoinAndSelect('schedule.vehicle', 'vehicle')
-    .leftJoinAndSelect('schedule.user', 'user')
-    .leftJoinAndSelect('schedule.driverUser', 'driverUser')
+    .leftJoin('schedule.vehicle', 'vehicle')
+    .addSelect(['vehicle.id', 'vehicle.register']) // 👈 solo lo que SÍ quieres
     .where('vehicle.id = :vehicle_id', { vehicle_id })
     .andWhere('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
     .getOne();
@@ -135,5 +134,6 @@ async findByVehicleAndDate(vehicle_id: number, date: string): Promise<any> {
 
   return schedule;
 }
+
 
 }
