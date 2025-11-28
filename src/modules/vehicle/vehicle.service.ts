@@ -399,8 +399,8 @@ async getMinimalVehicles() {
     });
 
     return {
-        message: "Vehicles retrieved successfully",
-        result: response
+        status: "Vehicles retrieved successfully",
+        data: response
     };
 }
 
