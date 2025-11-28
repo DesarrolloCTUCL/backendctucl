@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column,CreateDateColumn,UpdateDateColum
 import { IsString, IsNumber, IsDate, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import {Vehicle} from './vehicle.entity';
-
+import {User} from './user.entity';
 
 @Entity('schedule')
 export class Schedule{
@@ -20,14 +20,18 @@ export class Schedule{
   @Column()
   itinerary: string;
 
-  @Column() // plantear relacion con entidad de bus line en un futuro
+  @Column() 
   line_id: number;
   
-  @Column()//plantear relacion con entidad de usuario en un futuro
-  user_id: number;
 
-  @Column()
-  driver: number;
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'driver' })
+  driverUser: User;
 
   @Column()
   observations: string;

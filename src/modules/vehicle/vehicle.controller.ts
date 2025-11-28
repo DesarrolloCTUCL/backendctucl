@@ -57,7 +57,11 @@ export class VehicleController {
 		return this.vehicleService.assignVehicleToUser(+register, +user_id)
 	}
 
-
+	@Get('minimal')
+	async getMinimalVehicles() {
+		return this.vehicleService.getMinimalVehicles();
+	}
+	
 	//@Post('gps/:register')
 	//updateVehicleGps(
 	//	@Param('register') register: number,

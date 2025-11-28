@@ -11,6 +11,7 @@ import { Itinerary } from 'src/database/entities/itinerary.entity';
 import * as moment from 'moment-timezone';
 import { Schedule } from 'src/database/entities/schedule.entity';
 import { SharedVehicleDto } from './dto/shared-vehicle.dto';
+import { AccountType } from 'src/common/enum/account-type.enum';
 
 @Injectable()
 export class VehicleService {
@@ -350,4 +351,59 @@ async updateLocationByDeviceId(device_id: number, lat: number, lng: number) {
     );
 }
 
+async getMinimalVehicles() {
+    const vehicles = await this.vehicleRepository.find({
+        where: { status: true },
+        relations: { line: true }
+    });
+
+    // Obtener todos los usuarios para buscar shared_vehicles
+    const users = await this.userRepository.find({
+        where: { role: AccountType.PARTNER }
+    });
+
+    const response = vehicles.map(vehicle => {
+        // Buscar un usuario cuyo shared_vehicles tenga al vehículo en la primera posición
+        let owner: { id: number; name: string; lastname: string } | null = null;
+
+        for (const user of users) {
+            if (
+                user.shared_vehicles &&
+                Array.isArray(user.shared_vehicles) &&
+                user.shared_vehicles.length > 0
+            ) {
+                const firstShared = user.shared_vehicles[0];
+
+                if (firstShared.id === vehicle.id) {
+                    owner = {
+                        id: user.id,
+                        name: user.name,
+                        lastname: user.lastname
+                    };
+                    break;
+                }
+            }
+        }
+
+        return {
+            vehicle_id: vehicle.id,
+            register: vehicle.register,
+            group: vehicle.grupo,
+            latitude: vehicle.latitude,
+            longitude: vehicle.longitude,
+            line_id: vehicle.line?.id ?? null,
+            user_id: owner?.id ?? null,   
+            name: owner?.name ?? null,
+            last_name: owner?.lastname ?? null
+        };
+    });
+
+    return {
+        message: "Vehicles retrieved successfully",
+        result: response
+    };
+}
+
+
+    
 }
