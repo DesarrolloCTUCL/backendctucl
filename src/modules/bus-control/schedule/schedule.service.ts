@@ -14,11 +14,10 @@ export class ScheduleService {
 
   async create(createScheduleDto: CreateScheduleDto): Promise<Schedule> {
     try {
-      // 🔍 Normalizamos la fecha para comparar solo el día (sin horas/minutos/segundos)
       const scheduleDate = new Date(createScheduleDto.date);
       scheduleDate.setHours(0, 0, 0, 0);
   
-      // Verificar si ya existe un despacho para el mismo bus en esa fecha
+      // 🚫 Validar si ya existe un despacho para ese bus en esa fecha
       const existing = await this.scheduleRepository.findOne({
         where: {
           vehicle: { id: createScheduleDto.vehicle_id },
@@ -28,45 +27,58 @@ export class ScheduleService {
   
       if (existing) {
         throw new BadRequestException(
-          `El vehículo ${createScheduleDto.vehicle_id} ya tiene un despacho asignado para la fecha ${scheduleDate.toISOString().split('T')[0]}`,
+          `El vehículo ${createScheduleDto.vehicle_id} ya tiene un despacho asignado para la fecha ${scheduleDate.toISOString().split('T')[0]}`
         );
       }
   
-      // Crear y guardar nuevo despacho
-      const newSchedule = this.scheduleRepository.create({
-        ...createScheduleDto,
-        date: scheduleDate,
-        vehicle: { id: createScheduleDto.vehicle_id } // 👈 AQUÍ SE ASIGNA LA RELACIÓN
+      // 🔍 Buscar entidades reales
+      const vehicle = await this.scheduleRepository.manager.findOne('Vehicle', {
+        where: { id: createScheduleDto.vehicle_id }
       });
-      
+  
+      const user = await this.scheduleRepository.manager.findOne('User', {
+        where: { id: createScheduleDto.user_id }
+      });
+  
+      const driver = await this.scheduleRepository.manager.findOne('User', {
+        where: { id: createScheduleDto.driver }
+      });
+  
+      if (!vehicle) throw new BadRequestException("Vehículo no encontrado");
+      if (!user) throw new BadRequestException("Usuario asignador no encontrado");
+      if (!driver) throw new BadRequestException("Conductor no encontrado");
+  
+      // 🟢 Crear Schedule con sus relaciones
+      const newSchedule = this.scheduleRepository.create({
+        date: scheduleDate,
+        itinerary: createScheduleDto.itinerary,
+        line_id: createScheduleDto.line_id,
+        observations: createScheduleDto.observations ?? "",
+  
+        vehicle: vehicle,       // 👈 relación real
+        user: user,             // 👈 relación real
+        driverUser: driver      // 👈 relación real
+      });
   
       return await this.scheduleRepository.save(newSchedule);
   
     } catch (error) {
       console.error("❌ Error al crear despacho:", error);
   
-      if (error instanceof BadRequestException) {
-        throw error; // ya manejado arriba
-      }
+      if (error instanceof BadRequestException) throw error;
   
-      // cualquier otro error inesperado
       throw new InternalServerErrorException(
         error.message || "Error inesperado al crear el despacho"
       );
     }
   }
   
+  
   async findAll(): Promise<Schedule[]> {
     return this.scheduleRepository.find();
   }
 
-  async findOne(id: number): Promise<Schedule> {
-    const result = await this.scheduleRepository.findOneBy({ id });
-    if (!result) {
-      throw new NotFoundException(`Itinerary with ID ${id} not found`);
-    }
-    return result;
-  }
+
 
   async findByExactDate(date: Date): Promise<any[]> {
     const dateOnly = date.toISOString().split('T')[0];
@@ -78,5 +90,50 @@ export class ScheduleService {
       .where('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
       .getMany();
   }
-  
+
+async deleteByVehicleAndDate(vehicle_id: number, date: string): Promise<{ message: string }> {
+  // Usar la fecha tal como viene en el query, sin new Date()
+  const dateOnly = date.split('T')[0]; // por si envían ISO
+
+  const schedule = await this.scheduleRepository
+    .createQueryBuilder('schedule')
+    .leftJoin('schedule.vehicle', 'vehicle')
+    .where('vehicle.id = :vehicle_id', { vehicle_id })
+    .andWhere('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
+    .getOne();
+
+  if (!schedule) {
+    throw new NotFoundException(
+      `No existe un itinerario para el vehículo ${vehicle_id} en la fecha ${dateOnly}`
+    );
+  }
+
+  await this.scheduleRepository.remove(schedule);
+
+  return {
+    message: `Itinerario del vehículo ${vehicle_id} en la fecha ${dateOnly} eliminado correctamente`
+  };
+}
+
+async findByVehicleAndDate(vehicle_id: number, date: string): Promise<any> {
+  const dateOnly = date.split('T')[0];
+
+  const schedule = await this.scheduleRepository
+    .createQueryBuilder('schedule')
+    .leftJoin('schedule.vehicle', 'vehicle')
+    .addSelect(['vehicle.id', 'vehicle.register']) // 👈 solo lo que SÍ quieres
+    .where('vehicle.id = :vehicle_id', { vehicle_id })
+    .andWhere('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
+    .getOne();
+
+  if (!schedule) {
+    throw new NotFoundException(
+      `No existe un itinerario para el vehículo ${vehicle_id} en la fecha ${dateOnly}`,
+    );
+  }
+
+  return schedule;
+}
+
+
 }

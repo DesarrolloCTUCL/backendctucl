@@ -7,13 +7,18 @@ import { Shift } from './../../../database/entities/shift.entity';
 @ApiTags('Shift')
 @Controller('shift')
 export class ShiftController {
-  constructor(private readonly shiftService: ShiftService) {}
+  constructor(private readonly shiftService: ShiftService) { }
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los turnos' })
   @ApiResponse({ status: 200, description: 'Lista completa de turnos', type: [Shift] })
-  getAll() {
-    return this.shiftService.findAll();
+  async getAll() {
+    const data = await this.shiftService.findAll();
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   @Get(':id')
@@ -21,8 +26,14 @@ export class ShiftController {
   @ApiParam({ name: 'id', type: Number, description: 'ID del turno' })
   @ApiResponse({ status: 200, description: 'Turno encontrado', type: Shift })
   @ApiResponse({ status: 404, description: 'Turno no encontrado' })
-  getOne(@Param('id') id: number) {
-    return this.shiftService.findOne(id);
+  async getOne(@Param('id') id: number) {
+
+    const data = await this.shiftService.findOne(id);
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   @Put(':id/times')
@@ -40,6 +51,11 @@ export class ShiftController {
     @Param('id') id: number,
     @Body() body: UpdateTimesDto
   ) {
-    return this.shiftService.updateTimes(id, body.times);
+    const data = await this.shiftService.updateTimes(id, body.times)
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 }
