@@ -5,7 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import { AppLoggerService } from './common/logger/app-logger.service';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
-// ✅ Interceptores correctos
+
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { ErrorFilter } from './interceptors/error.filter';

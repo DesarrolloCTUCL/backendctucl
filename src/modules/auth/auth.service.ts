@@ -53,7 +53,10 @@ export class AuthService {
                     dni: foundedUser.dni,
                     role: foundedUser.role,
                     profile: foundedUser.profile,
-                    gender: foundedUser.gender
+                    gender: foundedUser.gender,
+                    phone:foundedUser.phone,
+                    address:foundedUser.address,
+                    company:foundedUser.company
                 },
                 token:token
             },
