@@ -55,9 +55,9 @@ export class ScheduleService {
         line_id: createScheduleDto.line_id,
         observations: createScheduleDto.observations ?? "",
   
-        vehicle: vehicle,       // 👈 relación real
-        user: user,             // 👈 relación real
-        driverUser: driver      // 👈 relación real
+        vehicle: vehicle,      
+        user: user,           
+        driverUser: driver      
       });
   
       return await this.scheduleRepository.save(newSchedule);
@@ -92,7 +92,6 @@ export class ScheduleService {
   }
 
 async deleteByVehicleAndDate(vehicle_id: number, date: string): Promise<{ message: string }> {
-  // Usar la fecha tal como viene en el query, sin new Date()
   const dateOnly = date.split('T')[0]; // por si envían ISO
 
   const schedule = await this.scheduleRepository
@@ -121,14 +120,14 @@ async findByVehicleAndDate(vehicle_id: number, date: string): Promise<any> {
   const schedule = await this.scheduleRepository
     .createQueryBuilder('schedule')
     .leftJoin('schedule.vehicle', 'vehicle')
-    .addSelect(['vehicle.id', 'vehicle.register']) // 👈 solo lo que SÍ quieres
+    .addSelect(['vehicle.id', 'vehicle.register']) 
     .where('vehicle.id = :vehicle_id', { vehicle_id })
     .andWhere('CAST(schedule.date AS DATE) = :date', { date: dateOnly })
     .getOne();
 
   if (!schedule) {
     throw new NotFoundException(
-      `No existe un itinerario para el vehículo ${vehicle_id} en la fecha ${dateOnly}`,
+      `No existe un itinerario para el vehículo en la fecha ${dateOnly}`,
     );
   }
 
