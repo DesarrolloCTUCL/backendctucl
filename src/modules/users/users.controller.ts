@@ -4,6 +4,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -32,9 +33,9 @@ export class UsersController {
 		return await this.usersService.getUsers(page , limit)
 	}
 
-	@Patch('/:user_id')
+	@Patch(':user_id')
 	@ApiOperation({summary:'actualizar usuarios'})
-	async updateUser(@Body() updateUserDto:UpdateUserDto, @Param('id') id: number){
+	async updateUser(@Body() updateUserDto:UpdateUserDto, @Param('user_id') id: number){
 		return await this.usersService.updateUser(updateUserDto,+id);
 	}
 

@@ -148,12 +148,28 @@ export class UsersService {
 	}
 
 	async findByEmail(email: string) {
-		const user = await this.userRepository
-			.createQueryBuilder('user')
-			.addSelect('user.password')
-			.where('user.email = :email', { email })
-			.andWhere('user.status = :status', { status: true })
-			.getOne();
+		const user = await this.userRepository.findOne(
+			{
+				where:{email:email,status:true},
+				relations:{
+					company:true,
+				},
+				select:{
+					id:true,
+					name:true,
+					lastname:true,
+					email:true,
+					birthdate:true,
+					dni:true,
+					role:true,
+					profile:true,
+					gender:true,
+					phone:true,
+					address:true,
+					company:true,
+					password:true,
+				}
+			})
 
 		if (!user) {
 			throw new NotFoundException('User Not found');
@@ -176,10 +192,102 @@ export class UsersService {
 	}
 
 
-	async updateUser(updateUserDto:UpdateUserDto,user_id:number){
+	async updateUser(updateUserDto: UpdateUserDto, user_id: number) {
+		// Verificar que el usuario existe
+		const user = await this.userRepository.findOne({
+			where: { id: user_id, status: true },
+		});
+		console.log(user);
 
-		
-	}
+		if (!user) {
+			throw new NotFoundException(`User with ID ${user_id} not found`);
+		}
+
+		// Validar email único si se está actualizando
+		if (updateUserDto.email && updateUserDto.email !== user.email) {
+			const existingEmail = await this.userRepository.findOne({
+			where: { email: updateUserDto.email },
+			});
+			if (existingEmail) {
+			throw new HttpException(
+				'Email already exists',
+				HttpStatus.CONFLICT,
+			);
+			}
+		}
+
+		// Validar DNI único si se está actualizando
+		if (updateUserDto.dni && updateUserDto.dni !== user.dni) {
+			const trimmedDni = updateUserDto.dni.trim();
+			if (trimmedDni.length < 10) {
+			throw new BadRequestException('DNI must be at least 10 characters long');
+			}
+
+			const existingDni = await this.userRepository.findOne({
+			where: { dni: trimmedDni },
+			});
+			if (existingDni) {
+			throw new HttpException(
+				'DNI already exists',
+				HttpStatus.CONFLICT,
+			);
+			}
+			updateUserDto.dni = trimmedDni;
+		}
+
+		// Hashear password si se está actualizando
+		if (updateUserDto.password) {
+			updateUserDto.password = await hash(
+			updateUserDto.password,
+			this.appConfigService.crypto.salt.size,
+			);
+		}
+
+		// Validar y actualizar company si se proporciona
+		if (updateUserDto.company_id) {
+			const company = await this.companyRepository.findOne({
+			where: { id: updateUserDto.company_id },
+			});
+			if (!company) {
+			throw new NotFoundException(
+				`Company with ID ${updateUserDto.company_id} does not exist`,
+			);
+			}
+		}
+
+		// Convertir a mayúsculas si se actualizan
+		if (updateUserDto.name) {
+			updateUserDto.name = updateUserDto.name.toUpperCase();
+		}
+		if (updateUserDto.lastname) {
+			updateUserDto.lastname = updateUserDto.lastname.toUpperCase();
+		}
+
+		// Actualizar usando el método optimizado de TypeORM
+		try {
+			await this.userRepository.update(user_id, {
+			...updateUserDto,
+			...(updateUserDto.company_id && { company: { id: updateUserDto.company_id } }),
+			});
+
+			// Obtener el usuario actualizado
+			const updatedUser = await this.userRepository.findOne({
+			where: { id: user_id },
+			relations: ['company'],
+			});
+
+			return {
+			message: 'User updated successfully',
+			result: updatedUser,
+			};
+		} catch (error) {
+			this.logger.error(
+			'Error updating user',
+			error instanceof Error ? error.message : JSON.stringify(error),
+			);
+			throw new InternalServerErrorException('Error updating user');
+		}
+		}
 
 
 }
