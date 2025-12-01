@@ -99,7 +99,7 @@ export class MqttServiceAWS implements OnModuleInit {
             lng: data.lng,
             speed: data.speed,
           });
-          await this.vehiclesService.updateLocationByDeviceId(
+          await this.vehiclesService.updateLocationByDeviceRegister(
             Number(data.device_id),
             data.lat,
             data.lng,
