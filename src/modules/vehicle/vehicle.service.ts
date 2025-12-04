@@ -232,172 +232,171 @@ export class VehicleService {
         };
     }
 
-    async sharedVehicle(sharedVehicleDto: SharedVehicleDto) {
-    // Validar que el usuario existe
-        const user = await this.userRepository.findOne({ 
-            where: { id: sharedVehicleDto.user_id, status: true }
-        });
+        async sharedVehicle(sharedVehicleDto: SharedVehicleDto) {
+            // Validar que el usuario existe
+            const user = await this.userRepository.findOne({ 
+                where: { id: sharedVehicleDto.user_id, status: true }
+            });
 
-        if (!user) {
-            throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} not found`);
-        }
+            if (!user) {
+                throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} not found`);
+            }
 
-        // Validar que el vehículo existe
-        const vehicle = await this.vehicleRepository.findOne({
-            where: { register: sharedVehicleDto.register_vehicle, status: true }
-        });
+            // Validar que el vehículo existe
+            const vehicle = await this.vehicleRepository.findOne({
+                where: { register: sharedVehicleDto.register_vehicle, status: true }
+            });
 
-        if (!vehicle) {
-            throw new NotFoundException(`Vehicle with register ${sharedVehicleDto.register_vehicle} not found`);
-        }
+            if (!vehicle) {
+                throw new NotFoundException(`Vehicle with register ${sharedVehicleDto.register_vehicle} not found`);
+            }
 
-        // Inicializar shared_vehicles si está vacío o es null
-        if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
-            user.shared_vehicles = [{ id: vehicle.id, register: vehicle.register }];
-            await this.userRepository.save(user);
+            // Inicializar shared_vehicles si está vacío o es null
+            if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
+                user.shared_vehicles = [{ id: vehicle.id, register: vehicle.register }];
+                await this.userRepository.save(user);
+                
+                return {
+                    message: "The vehicle had no registration, 1 new one is added",
+                    result: user
+                };
+            }
+
+            // Verificar si el vehículo ya está compartido
+            const vehicleExists = user.shared_vehicles.some(item => item.register === vehicle.register);
             
+            if (vehicleExists) {
+                return {
+                    message: `The vehicle with registration number ${vehicle.register} already exists`,
+                    result: user
+                };
+            }
+
+            // Agregar el nuevo vehículo
+            user.shared_vehicles.push({ id: vehicle.id, register: vehicle.register });
+            await this.userRepository.save(user);
+
             return {
-                message: "The vehicle had no registration, 1 new one is added",
+                message: `The vehicle with registration number ${vehicle.register} has been added`,
                 result: user
             };
         }
 
-        // Verificar si el vehículo ya está compartido
-        const vehicleExists = user.shared_vehicles.some(item => item.register === vehicle.register);
-        
-        if (vehicleExists) {
+
+        async deleteSharedVehicle(sharedVehicleDto: SharedVehicleDto) {
+        // Validar que el usuario existe
+            const user = await this.userRepository.findOne({ 
+                where: { id: sharedVehicleDto.user_id, status: true }
+            });
+
+            if (!user) {
+                throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} not found`);
+            }
+
+            // Validar que el usuario tiene vehículos compartidos
+            if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
+                throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} doesn't have shared vehicles`);
+            }
+
+            // Verificar si el vehículo existe
+            const vehicleExists = user.shared_vehicles.some(
+                item => item.register === sharedVehicleDto.register_vehicle
+            );
+
+            if (!vehicleExists) {
+                throw new NotFoundException(
+                    `Vehicle with register ${sharedVehicleDto.register_vehicle} is not shared with this user`
+                );
+            }
+
+            // Filtrar el vehículo (remover el que coincida)
+            user.shared_vehicles = user.shared_vehicles.filter(
+                item => item.register !== sharedVehicleDto.register_vehicle
+            );
+
+            // Guardar los cambios
+            await this.userRepository.save(user);
+
             return {
-                message: `The vehicle with registration number ${vehicle.register} already exists`,
-                result: user
+                message: `Vehicle with register ${sharedVehicleDto.register_vehicle} has been removed successfully`,
+                result: {
+                    user_id: user.id,
+                    shared_vehicles: user.shared_vehicles
+                }
             };
         }
 
-        // Agregar el nuevo vehículo
-        user.shared_vehicles.push({ id: vehicle.id, register: vehicle.register });
-        await this.userRepository.save(user);
+        async updateLocationByDeviceRegister(register: number, lat: number, lng: number) {
+            if (!register) {
+                throw new BadRequestException("device_id no puede ser null");
+            }
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                throw new BadRequestException("Coordenadas inválidas");
+            }
+            const result = await this.vehicleRepository.update(
+                { register },
+                { 
+                    latitude: lat, 
+                    longitude: lng,
+                }
+            );
 
-        return {
-            message: `The vehicle with registration number ${vehicle.register} has been added`,
-            result: user
-        };
-    }
+            if (result.affected === 0) {
+                throw new NotFoundException(`Vehículo con register ${register} no encontrado`);
+            }
+            return result;
+        }
 
-
-    async deleteSharedVehicle(sharedVehicleDto: SharedVehicleDto) {
-    // Validar que el usuario existe
-        const user = await this.userRepository.findOne({ 
-            where: { id: sharedVehicleDto.user_id, status: true }
+        async getMinimalVehicles() {
+        const vehicles = await this.vehicleRepository.find({
+            where: { status: true },
+            relations: { line: true }
         });
 
-        if (!user) {
-            throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} not found`);
-        }
+        const users = await this.userRepository.find({
+            where: { role: AccountType.PARTNER }
+        });
 
-        // Validar que el usuario tiene vehículos compartidos
-        if (!user.shared_vehicles || !Array.isArray(user.shared_vehicles) || user.shared_vehicles.length === 0) {
-            throw new NotFoundException(`User with ID ${sharedVehicleDto.user_id} doesn't have shared vehicles`);
-        }
+        const response = vehicles.map(vehicle => {
+            // Buscar un usuario cuyo shared_vehicles tenga al vehículo en la primera posición
+            let owner: { id: number; name: string; lastname: string } | null = null;
 
-        // Verificar si el vehículo existe
-        const vehicleExists = user.shared_vehicles.some(
-            item => item.register === sharedVehicleDto.register_vehicle
-        );
+            for (const user of users) {
+                if (
+                    user.shared_vehicles &&
+                    Array.isArray(user.shared_vehicles) &&
+                    user.shared_vehicles.length > 0
+                ) {
+                    const firstShared = user.shared_vehicles[0];
 
-        if (!vehicleExists) {
-            throw new NotFoundException(
-                `Vehicle with register ${sharedVehicleDto.register_vehicle} is not shared with this user`
-            );
-        }
-
-        // Filtrar el vehículo (remover el que coincida)
-        user.shared_vehicles = user.shared_vehicles.filter(
-            item => item.register !== sharedVehicleDto.register_vehicle
-        );
-
-        // Guardar los cambios
-        await this.userRepository.save(user);
-
-        return {
-            message: `Vehicle with register ${sharedVehicleDto.register_vehicle} has been removed successfully`,
-            result: {
-                user_id: user.id,
-                shared_vehicles: user.shared_vehicles
-            }
-        };
-    }
-
-    async updateLocationByDeviceRegister(register: number, lat: number, lng: number) {
-        if (!register) {
-            throw new BadRequestException("device_id no puede ser null");
-        }
-        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            throw new BadRequestException("Coordenadas inválidas");
-        }
-        const result = await this.vehicleRepository.update(
-            { register },
-            { 
-                latitude: lat, 
-                longitude: lng,
-            }
-        );
-
-        if (result.affected === 0) {
-            throw new NotFoundException(`Vehículo con register ${register} no encontrado`);
-        }
-        return result;
-    }
-
-async getMinimalVehicles() {
-    const vehicles = await this.vehicleRepository.find({
-        where: { status: true },
-        relations: { line: true }
-    });
-
-    // Obtener todos los usuarios para buscar shared_vehicles
-    const users = await this.userRepository.find({
-        where: { role: AccountType.PARTNER }
-    });
-
-    const response = vehicles.map(vehicle => {
-        // Buscar un usuario cuyo shared_vehicles tenga al vehículo en la primera posición
-        let owner: { id: number; name: string; lastname: string } | null = null;
-
-        for (const user of users) {
-            if (
-                user.shared_vehicles &&
-                Array.isArray(user.shared_vehicles) &&
-                user.shared_vehicles.length > 0
-            ) {
-                const firstShared = user.shared_vehicles[0];
-
-                if (firstShared.id === vehicle.id) {
-                    owner = {
-                        id: user.id,
-                        name: user.name,
-                        lastname: user.lastname
-                    };
-                    break;
+                    if (firstShared.id === vehicle.id) {
+                        owner = {
+                            id: user.id,
+                            name: user.name,
+                            lastname: user.lastname
+                        };
+                        break;
+                    }
                 }
             }
-        }
+
+            return {
+                vehicle_id: vehicle.id,
+                register: vehicle.register,
+                group: vehicle.grupo,
+                latitude: vehicle.latitude,
+                longitude: vehicle.longitude,
+                line_id: vehicle.line?.id ?? null,
+                user_id: owner?.id ?? null,   
+                name: owner?.name ?? null,
+                last_name: owner?.lastname ?? null
+            };
+        });
 
         return {
-            vehicle_id: vehicle.id,
-            register: vehicle.register,
-            group: vehicle.grupo,
-            latitude: vehicle.latitude,
-            longitude: vehicle.longitude,
-            line_id: vehicle.line?.id ?? null,
-            user_id: owner?.id ?? null,   
-            name: owner?.name ?? null,
-            last_name: owner?.lastname ?? null
+            status: "Vehicles retrieved successfully",
+            data: response
         };
-    });
-
-    return {
-        status: "Vehicles retrieved successfully",
-        data: response
-    };
 }
 
 
