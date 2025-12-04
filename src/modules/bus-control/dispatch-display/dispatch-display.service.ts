@@ -24,24 +24,14 @@ export class DispatchDisplayService {
     date: string,
   ): Promise<DispatchResponseDTO> {
 
-    // ---- FECHA SIN HORAS ----
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-
-    // ---- CONSULTA CON RELACIÓN VEHÍCULO ----
-    const despacho = await this.despachoRepo.findOne({
-      where: {
-        vehicle: { id: vehicle_id },
-        date: Between(start, end),
-      },
-      relations: ['vehicle'],  
-      order: { date: 'DESC' },
-    });
-    
-    
+    const despacho = await this.despachoRepo
+    .createQueryBuilder('d')
+    .leftJoinAndSelect('d.vehicle', 'vehicle')
+    .where('vehicle.id = :id', { id: vehicle_id })
+    .andWhere("DATE(d.date) = :date", { date })
+    .orderBy('d.date', 'DESC')
+    .getOne();
+      
 
     if (!despacho) {
       throw new NotFoundException(
