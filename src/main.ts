@@ -28,6 +28,7 @@ async function bootstrap() {
       'https://ctucl-manager-frontend.vercel.app',
       'https://frontendctucl.vercel.app',
       'https://frontendctucl-8yopp2yp9-desarrolloctucls-projects.vercel.app',
+      '*'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
